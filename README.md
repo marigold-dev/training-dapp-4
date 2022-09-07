@@ -141,16 +141,11 @@ sequenceDiagram
 
 | Pros | Cons |
 | --   |   -- |
-| No more migration of code and storage. Update the lambda function code that is on existing storage | IDE or tools do not work anymore on lambda code. Michelson does not protect us from some kinds of mistakes anymore |
+| No more migration of code and storage. Update the lambda function code that is on existing storage | If we want also storage, we need to store all in bytes PACKING/UNPACKING and we lose all type checking |
+|  | IDE or tools do not work anymore on lambda code. Michelson does not protect us from some kinds of mistakes anymore |
 |  | Unexpected changes can cause other contract callers to fail, we lose interface benefits |
 |  | Harder to audit and trace |
 |  | Storing everything as bytes is limited to PACK-able types like nat, string, list, set, map |
-
-//TODO TZIP-18 proposition like Hyperledger one. Call contract "ALIAS" with "VERSION" from "ADMIN address", protocol knows where is the address of the code version to call, like protocol is having an indexer of similar contract from same Admin and is able to execute the good SOURCE CODE.
-When migration is asked : tezos-client migrate contract MY_CONTRACT to version VERSION_X.Y.Z etc ...
-OR
-use the global table .. ? registred there the last HASH version of deplyed contracts ? ... ? Who can update this table ???
-
 
 ### Implementation
 
@@ -159,6 +154,15 @@ use the global table .. ? registred there the last HASH version of deplyed contr
 ## Alternative : Composability
 
 Managing a monolithic smartcontract like a microservice can reduce the problem, on the other side it increase complexity and application lifecycle on OPS side
+
+## Final thought : New Proposition for TZIP-18
+
+Copy Hyperledger Fabrix migration feature.
+
+Call contract "ALIAS" with "VERSION" from "ADMIN address", protocol knows where is the address of the code version to call, like protocol is having an indexer of similar contract from same Admin and is able to execute the good SOURCE CODE.
+When migration is asked : tezos-client migrate contract MY_CONTRACT to version VERSION_X.Y.Z etc ...
+OR
+use the global table .. ? registred there the last HASH version of deplyed contracts ? ... ? Who can update this table ???
 
 # :palm_tree: Conclusion :sun_with_face:
 
