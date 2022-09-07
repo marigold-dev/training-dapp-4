@@ -9,11 +9,14 @@ Training dapp n°4
 
 # :point_up:  Upgradable Poke game
 
-Previously, you learned how to do inter-contract calls, use view and do unit testing.
+Previously, you learned how to use tickets and don't mess up with it.
 In this third session, you will enhance your skills on :
-- upgrading a smart contract and store function code
+- upgrading a smart contract with proxy
+- upgrading a smart contract with lambda function code
 
-As you maybe know, smart contracts are immutable but in real life, applications are not and evolve. Let's see 2 tricks that allow to upgrade a contract
+As you maybe know, smart contracts are immutable but in real life, applications are not and evolve. During the past several years, bugs and vulnerabilities in smart contracts caused millions of dollars to get stolen or lost forever. Such cases may even require manual intervention in blockchain operation to recover the funds.
+
+Let's see 2 tricks that allow to upgrade a contract
 
 
 # :memo: Prerequisites
@@ -32,13 +35,29 @@ But application lifecycle implies to evolve and upgrade code to fix bug or bring
 
 ## Naive approach
 
-Ones can deploy a new version of the smart contract and do a redirection to the new address on front end side 
+One can deploy a new version of the smart contract and do a redirection to the new address on front end side 
+
+Complete flow
+
+```mermaid
+sequenceDiagram
+  Admin->>Tezos: originate smart contract A
+  Tezos-->>Admin: contractAddress A
+  User->>SmartContractA: transaction %myfunction
+  Note right of SmartContractA : executing logic of A
+  Admin->>Tezos: originate smart contract B with A storage as init
+  Tezos-->>Admin: contractAddress B
+  Admin->>frontend: change smart contract address to B  
+  User->>SmartContractB: transaction %myfunction
+  Note right of SmartContractB : executing logic of B
+
+```
 
 | Pros | Cons |
 | --   |   -- |
-| Easy to do | Old contract remains active, so do bugs |
-|  | Need to migrate old storage, cost money |
-|  | Need to update frontend at each backend migration |
+| Easiest to do | Old contract remains active, so do bugs. Need to really get rid off it |
+|  | Need to migrate old storage, can cost a lot of money |
+|  | Need to sync/update frontend at each backend migration |
 
 ## Proxy pattern
 
@@ -71,13 +90,17 @@ sequenceDiagram
   Note right of Proxy : Storage : version =  newVersion
 ```
 
+> Note : 2 location choices for the storage :
+> - at proxy level : storage stays unique and immutable
+> - at end-contract level : storage is new at each new version and need to be migrated
+
 ### Pros/Cons
 
 | Pros | Cons |
 | --   |   -- |
-| Migration is transparent for frontend | smart contract code `Tezos.SENDER` will always refer to the proxy |
-|  | Need to migrate old storage, cost money |
-|  | Wrap transaction params (endpointNameToCall,bytes) |
+| Migration is transparent for frontend | smart contract code `Tezos.SENDER` will always refer to the proxy, so need to be careful |
+| if storage is unchanged, we can keep storage at proxy level without cost | If storage changes, need to migrate storage from old contract to new contract and it costs money and having storage at proxy lvele is not more possible |
+|  | If contract interface changed, we need to re-originating the proxy |
 
 ### Implementation
 
@@ -91,7 +114,7 @@ Init
 
 ```mermaid
 sequenceDiagram
-  Admin->>Tezos: originate smart contract with lambaMap.add("myfunction","<SOME_CODE>")
+  Admin->>Tezos: originate smart contract with a lambda Map on storage, initialized Map.literal(list([["myfunction","<SOME_CODE>"]]))
   Tezos-->>Admin: contractAddress
 ```
 
@@ -100,27 +123,26 @@ Interaction
 ```mermaid
 sequenceDiagram
   User->>SmartContract: transaction %myfunction
-  Note right of SmartContract : Tezos.exec(lambaMap[myfunction])
+  Note right of SmartContract : Tezos.exec(lambaMap.find_opt(myfunction))
 ```
 
 Administration
 
 ```mermaid
 sequenceDiagram
-  Admin->>Proxy: transaction(newAddress,0,Proxy%setDestination)
-  Note right of Proxy : Check caller == admin
-  Note right of Proxy : Storage : destination =  newAddress
+  Admin->>SmartContract: transaction(["myfunction","<SOME_CODE>"],0,updateLambdaCode)
+  Note right of SmartContract : Check caller == admin
+  Note right of SmartContract : Map.add("myfunction","<SOME_CODE>",lambaMap)
 ```
 
 ### Pros/Cons
 
 | Pros | Cons |
 | --   |   -- |
-| No migration of code and storage | IDE or tools do not work anymore on lambda code |
-|  | Unexpected changes can cause other contract callers to fail |
+| No more migration of code and storage. Update the lambda function code that is on existing storage | IDE or tools do not work anymore on lambda code. Michelson does not protect us from some kinds of mistakes anymore |
+|  | Unexpected changes can cause other contract callers to fail, we lose interface benefits |
 |  | Harder to audit and trace |
-
-
+|  | Storing everything as bytes is limited to PACK-able types like nat, string, list, set, map |
 
 //TODO TZIP-18 proposition like Hyperledger one. Call contract "ALIAS" with "VERSION" from "ADMIN address", protocol knows where is the address of the code version to call, like protocol is having an indexer of similar contract from same Admin and is able to execute the good SOURCE CODE.
 When migration is asked : tezos-client migrate contract MY_CONTRACT to version VERSION_X.Y.Z etc ...
@@ -132,6 +154,9 @@ use the global table .. ? registred there the last HASH version of deplyed contr
 
 >
 
+## Alternative : Composability
+
+Managing a monolithic smartcontract like a microservice can reduce the problem, on the other side it increase complexity and application lifecycle on OPS side
 
 # :palm_tree: Conclusion :sun_with_face:
 
