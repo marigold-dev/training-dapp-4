@@ -43,12 +43,14 @@ Complete flow
 sequenceDiagram
   Admin->>Tezos: originate smart contract A
   Tezos-->>Admin: contractAddress A
-  User->>SmartContractA: transaction %myfunction
+  User->>frontend: transaction %myfunction
+  frontend->>SmartContractA: transaction %myfunction
   Note right of SmartContractA : executing logic of A
   Admin->>Tezos: originate smart contract B with A storage as init
   Tezos-->>Admin: contractAddress B
   Admin->>frontend: change smart contract address to B  
-  User->>SmartContractB: transaction %myfunction
+  User->>frontend: transaction %myfunction
+  frontend->>SmartContractB: transaction %myfunction
   Note right of SmartContractB : executing logic of B
 
 ```
