@@ -33,6 +33,8 @@ But application lifecycle implies to evolve and upgrade code to fix bug or bring
 
 > https://gitlab.com/tezos/tzip/-/blob/master/proposals/tzip-18/tzip-18.md
 
+> Note : All below solutions break in a wait the fact that a smartcontract is immutable. We can preserve in a way **Trust** if the upgrade process has some security and authenticity around it. Like the first time an admin deploys a smartcontract, any user should be able to trust the code reading it with free read access, the same should apply to the upgrade process (notification of new code version, admin identification, whitelisted auditor reports, ...). To resume, if you really want to avoid DEVOPS centralization, you are about to create a DAO with a voting process amongs some selected users/administrators in order to deploy the new version of the smartcontract ... but let's simplify and talk here only about classical centralized admin deployment
+
 ## Naive approach
 
 One can deploy a new version of the smart contract and do a redirection to the new address on front end side 
@@ -43,16 +45,15 @@ Complete flow
 sequenceDiagram
   Admin->>Tezos: originate smart contract A
   Tezos-->>Admin: contractAddress A
-  User->>frontend: transaction %myfunction
+  User->>frontend: click on %myfunction
   frontend->>SmartContractA: transaction %myfunction
   Note right of SmartContractA : executing logic of A
   Admin->>Tezos: originate smart contract B with A storage as init
   Tezos-->>Admin: contractAddress B
   Admin->>frontend: change smart contract address to B  
-  User->>frontend: transaction %myfunction
+  User->>frontend: click on %myfunction
   frontend->>SmartContractB: transaction %myfunction
   Note right of SmartContractB : executing logic of B
-
 ```
 
 | Pros | Cons |
@@ -60,6 +61,7 @@ sequenceDiagram
 | Easiest to do | Old contract remains active, so do bugs. Need to really get rid off it |
 |  | Need to migrate old storage, can cost a lot of money |
 |  | Need to sync/update frontend at each backend migration |
+|  | Lose reference to previous contract address, can lead to issues with other dependent contracts |
 
 ## Proxy pattern
 
@@ -102,7 +104,7 @@ sequenceDiagram
 | --   |   -- |
 | Migration is transparent for frontend | smart contract code `Tezos.SENDER` will always refer to the proxy, so need to be careful |
 | if storage is unchanged, we can keep storage at proxy level without cost | If storage changes, need to migrate storage from old contract to new contract and it costs money and having storage at proxy lvele is not more possible |
-|  | If contract interface changed, we need to re-originating the proxy |
+| keep same contract address | If contract interface changed, we need to re-originating the proxy |
 
 ### Implementation
 
@@ -142,9 +144,9 @@ sequenceDiagram
 | Pros | Cons |
 | --   |   -- |
 | No more migration of code and storage. Update the lambda function code that is on existing storage | If we want also storage, we need to store all in bytes PACKING/UNPACKING and we lose all type checking |
-|  | IDE or tools do not work anymore on lambda code. Michelson does not protect us from some kinds of mistakes anymore |
+| keep same contract address | IDE or tools do not work anymore on lambda code. Michelson does not protect us from some kinds of mistakes anymore |
 |  | Unexpected changes can cause other contract callers to fail, we lose interface benefits |
-|  | Harder to audit and trace |
+|  | Harder to audit and trace, can lead to really big security nd Trust issues |
 |  | Storing everything as bytes is limited to PACK-able types like nat, string, list, set, map |
 
 ### Implementation
@@ -157,12 +159,40 @@ Managing a monolithic smartcontract like a microservice can reduce the problem, 
 
 ## Final thought : New Proposition for TZIP-18
 
-Copy Hyperledger Fabrix migration feature.
+Copy Hyperledger Fabric migration feature.
 
-Call contract "ALIAS" with "VERSION" from "ADMIN address", protocol knows where is the address of the code version to call, like protocol is having an indexer of similar contract from same Admin and is able to execute the good SOURCE CODE.
-When migration is asked : tezos-client migrate contract MY_CONTRACT to version VERSION_X.Y.Z etc ...
-OR
-use the global table .. ? registred there the last HASH version of deplyed contracts ? ... ? Who can update this table ???
+It is comparable to the naive approach combined with internal proxy except that the proxy is managed by Tezos node and requires no more user manual operations
+
+```mermaid
+sequenceDiagram
+  Admin->>Tezos: originate smart contract "A" "1" with adminPolicy "AND(Admin,Admin2)" 
+  Tezos-->>Admin: contractAddress A "1"
+  User->>frontend: click on %myfunction
+  frontend->>SmartContractA: transaction %myfunction
+  Note right of SmartContractA : executing logic of A 1
+  Admin->>Tezos: migrate smart contract "A" "2" "<NEW_CODE>" "<OPTIONAL_STORAGE_MIGRATION_SCRIPT>"
+  Tezos-->>Admin: success 1/2
+  Admin2->>Tezos: migrate smart contract "A" "2" "<NEW_CODE>" "<OPTIONAL_STORAGE_MIGRATION_SCRIPT>"
+  Tezos-->>Admin2: success 2/2 , new version 2 is activated
+  Note right of SmartContractA : executing storage migration script from "1" to "2"
+  Note right of SmartContractA : setAndDispatch contractAddress A "2"
+  User->>frontend: click on %myfunction
+  frontend->>SmartContractA: transaction %myfunction
+  Note right of SmartContractA : executing logic of "A" "2"
+```
+
+Few changes to consider :
+- contract aliases are no more local with CLI but globally known on the network. Aliases are unique and maintained by chain
+- during migration, all nodes knows which binary of the code to run depending of the current code version associated to the smart contract. So we have a notion of smartcontract definition (name,version,code,adminPolicies). (Can be stored on the global table by only in WRITABLE depending of smartcontract policies ?)
+- smart contracts have admin policies defining who can deploy a new version. Like DAO , it can be a multisig signature of required n among m signatures to actually activate the new version `tezos-client migrate contract "A" "2.0" "<NEW_CODE>" "<OPTIONAL_STORAGE_MIGRATION_SCRIPT>" `
+- also admin policies might be updatable too. `tezos-client update contract-policy "A" "OR(Admin,Admin2)" ` . We can imagine new roles to do smart contract migration, edit smart contract policies, etc ... a RBAC system
+- how to revert ? It is not possible to revert, instead, deploy the source code of previous version with a reverse storage migration script. It will increment the smart contract version anyway
+
+| Pros | Cons |
+| --   |   -- |
+| Easiest for DEVOPS | Once could try to take lot of contract alias names (i.e kinda DNS system) but it will cost money and added value is not so big |
+| Cheap, as storage does not move | use jq as new storage migration language ? |
+|  | Need to clearly define governance policies for upgrading contracts at first deployment |
 
 # :palm_tree: Conclusion :sun_with_face:
 
