@@ -59,7 +59,7 @@ sequenceDiagram
 | Pros | Cons |
 | --   |   -- |
 | Easiest to do | Old contract remains active, so do bugs. Need to really get rid off it |
-|  | Need to migrate old storage, can cost a lot of money |
+|  | Need to migrate old storage, can cost a lot of money or even be too big to copy at init time|
 |  | Need to sync/update frontend at each backend migration |
 |  | Lose reference to previous contract address, can lead to issues with other dependent contracts |
 
@@ -165,20 +165,24 @@ It is comparable to the naive approach combined with internal proxy except that 
 
 ```mermaid
 sequenceDiagram
-  Admin->>Tezos: originate smart contract "A" "1" with adminPolicy "AND(Admin,Admin2)" 
-  Tezos-->>Admin: contractAddress A "1"
+  Admin->>Tezos: originate smart contract "A" version "1" with adminPolicy "AND(Admin,Admin2)" 
+  Tezos-->>Admin: contractAddress A version "1"
   User->>frontend: click on %myfunction
   frontend->>SmartContractA: transaction %myfunction
-  Note right of SmartContractA : executing logic of A 1
-  Admin->>Tezos: migrate smart contract "A" "2" "<NEW_CODE>" "<OPTIONAL_STORAGE_MIGRATION_SCRIPT>"
+  Note right of SmartContractA : executing logic of "A" version "1"
+  Admin->>Tezos: migrate smart contract "A" version "2" "<NEW_CODE>" "<OPTIONAL_STORAGE_MIGRATION_SCRIPT>"
   Tezos-->>Admin: success 1/2
-  Admin2->>Tezos: migrate smart contract "A" "2" "<NEW_CODE>" "<OPTIONAL_STORAGE_MIGRATION_SCRIPT>"
+  Admin2->>Tezos: migrate smart contract "A" version "2" "<NEW_CODE>" "<OPTIONAL_STORAGE_MIGRATION_SCRIPT>"
+  Note right of Tezos : check smart contract policy passed & ready for activation & dispatch to other nodes
+  Note right of Tezos : pausing all calls to contract "A"
+  Note right of Tezos : executing storage migration script from "1" to "2"
+  Note right of Tezos : set current contract version A to version "2"
+  Note right of Tezos : point contract address "A" to version "2" code binary
+  Note right of Tezos : resume all calls to contract "A"
   Tezos-->>Admin2: success 2/2 , new version 2 is activated
-  Note right of SmartContractA : executing storage migration script from "1" to "2"
-  Note right of SmartContractA : setAndDispatch contractAddress A "2"
   User->>frontend: click on %myfunction
   frontend->>SmartContractA: transaction %myfunction
-  Note right of SmartContractA : executing logic of "A" "2"
+  Note right of SmartContractA : executing logic of "A" version "2"
 ```
 
 Few changes to consider :
