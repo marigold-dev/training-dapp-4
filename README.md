@@ -11,8 +11,8 @@ Training dapp n°4
 
 Previously, you learned how to use tickets and don't mess up with it.
 In this third session, you will enhance your skills on :
-- upgrading a smart contract with proxy
 - upgrading a smart contract with lambda function code
+- upgrading a smart contract with proxy
 
 As you maybe know, smart contracts are immutable but in real life, applications are not and evolve. During the past several years, bugs and vulnerabilities in smart contracts caused millions of dollars to get stolen or lost forever. Such cases may even require manual intervention in blockchain operation to recover the funds.
 
@@ -105,8 +105,164 @@ sequenceDiagram
 
 ### Implementation
 
->
+We are going to change the implementation of the function `pokeAndGetFeedback`. Getting the feedback will be now as a lambda function on storage. So, we will require : 
+- a new entrypoint to change the lambda code
+- update current entrypoint to call/execute the lambda
 
+Let's start with adding the lambda function definition of the storage
+
+```typescript
+export type feedbackFunction = (oracleAddress : address) => string ;
+
+export type storage = {
+    pokeTraces : map<address, pokeMessage>,
+    feedback : string,
+    ticketOwnership : map<address,ticket<string>>,  //ticket of claims
+    feedbackFunction : feedbackFunction
+};
+```
+
+Update the main function, you 1 more field on storage destructuring
+
+```typescript
+export const main = ([action, store] : [parameter, storage]) : return_ => {
+    //destructure the storage to avoid DUP
+    let {pokeTraces  , feedback  , ticketOwnership,feedbackFunction } = store;
+    return match (action, {
+        Poke: () => poke([pokeTraces  , feedback  , ticketOwnership, feedbackFunction]) ,
+        PokeAndGetFeedback: (other : address) => pokeAndGetFeedback([other,pokeTraces  , feedback  , ticketOwnership,feedbackFunction]),
+        Init: (initParam : [address, nat]) => init([initParam[0], initParam[1], pokeTraces  , feedback  , ticketOwnership , feedbackFunction])
+      } 
+    )
+};
+```
+
+Write the new PokeAndGetFeedback function where we will introduce the lamda call
+
+```typescript
+// @no_mutation
+const pokeAndGetFeedback = ([oracleAddress,pokeTraces  , feedback  , ticketOwnership, feedbackFunction]:[address,map<address, pokeMessage>  , string  , map<address,ticket<string>>, feedbackFunction]) : return_ => {
+
+    //extract opt ticket from map
+    const [t , tom] : [option<ticket<string>>, map<address,ticket<string>>]  = Map.get_and_update(Tezos.get_source(), None() as option<ticket<string>>,ticketOwnership);
+
+    let feedbackMessage = {receiver : oracleAddress ,feedback: feedbackFunction(oracleAddress) };
+
+    return match(t, {
+        None : () => failwith("User does not have tickets => not allowed"),
+        Some : (_t : ticket<string>) => [  list([]) as list<operation>, { 
+                        feedback,
+                        pokeTraces : Map.add(Tezos.get_source(),feedbackMessage , pokeTraces),
+                        ticketOwnership : tom ,
+                        feedbackFunction
+                        }]
+    });
+};
+```
+
+Note the line with `feedbackFunction(oracleAddress)`, so we call the lambda and still pass the address parameter
+
+On a first time we will inject the old code to check all still works and then we will modify the lamda code on the storage to check that behavior has changed.
+
+To modify the lambda function code we need an extra admin entrypoint `UpdateFeedbackFunction`
+
+Add this new entrypoint case on the `main` function switch-case pattern matching `match`. It just override the function definition. 
+
+```typescript
+        UpdateFeedbackFunction : (newCode : feedbackFunction) => [list([]),{pokeTraces  , feedback  , ticketOwnership, feedbackFunction : newCode}] 
+```
+
+Add it also to the parameter definition
+
+```typescript
+export type parameter =
+| ["Poke"]
+| ["PokeAndGetFeedback", address]
+| ["Init", address, nat]
+| ["UpdateFeedbackFunction",feedbackFunction]
+;
+```
+
+As we broke the storage definition earlier, fix all storage field missing warnings on `poke` and `init` functions 
+
+```typescript
+const poke = ([pokeTraces  , feedback  , ticketOwnership,feedbackFunction] : [map<address, pokeMessage>  , string  , map<address,ticket<string>>,feedbackFunction]) : return_ => {
+    
+    //extract opt ticket from map
+    const [t , tom] : [option<ticket<string>>, map<address,ticket<string>>]  = Map.get_and_update(Tezos.get_source(), None() as option<ticket<string>>,ticketOwnership);
+    
+    return match(t, {
+        None : () => failwith("User does not have tickets => not allowed"),
+        Some : (_t : ticket<string>) => [  list([]) as list<operation>,{ //let t burn
+        feedback,
+        pokeTraces : Map.add(Tezos.get_source(), {receiver : Tezos.get_self_address(), feedback : ""},pokeTraces),
+        ticketOwnership : tom,
+        feedbackFunction
+     }]
+    });
+};
+
+const init = ([a, ticketCount, pokeTraces  , feedback  , ticketOwnership, feedbackFunction] : [address, nat, map<address, pokeMessage>  , string  , map<address,ticket<string>>,feedbackFunction]) : return_ => {
+    if(ticketCount == (0 as nat)){
+        return [  list([]) as list<operation>,{
+            feedback,
+            pokeTraces,
+            ticketOwnership ,  
+            feedbackFunction
+            }];
+    } else {
+        return [  list([]) as list<operation>,{
+            feedback,
+            pokeTraces,
+            ticketOwnership : Map.add(a,Tezos.create_ticket("can_poke", ticketCount),ticketOwnership) ,  
+            feedbackFunction
+            }];
+    }
+};
+```
+
+Time to compile and play with the CLI
+
+```bash
+ligo compile contract ./smartcontract/pokeGame.jsligo --output-file pokeGame.tz --protocol jakarta
+```
+
+Compile an initial storage. Here we inject the old initial value of the lambda function (i.e calling a view to get a feedback) 
+
+```bash
+ligo compile storage ./smartcontract/pokeGame.jsligo '{pokeTraces : Map.empty as map<address, pokeMessage> , feedback : "kiss" , ticketOwnership : Map.empty as map<address,ticket<string>>,feedbackFunction : ((oracleAddress : address) : string => { return match( Tezos.call_view("feedback", unit, oracleAddress) as option<string> , { Some : (feedback : string) => feedback,  None : () => failwith("Cannot find view feedback on given oracle address")  }); }) }' --output-file pokeGameStorage.tz  --protocol jakarta
+```
+
+Redeploy to testnet, replacing <ACCOUNT_KEY_NAME> with your own user alias ⚠️
+
+```bash
+tezos-client originate contract mycontract transferring 0 from <ACCOUNT_KEY_NAME> running pokeGame.tz --init "$(cat pokeGameStorage.tz)" --burn-cap 1 --force
+```
+
+```logs
+New contract KT1HRu51cEigmqa8jeLZkqXfL1QYHzSFAMdc originated.
+```
+
+Time to go on the dapp to test
+
+Replace the contract address on dapp/src/App.tsx file with above value you got
+
+Mint 1 ticket, wait for confirmation and poke a contract address, wait for confirmation and then click on button to refresh the contract list
+So far so good, you have the same result as previous training
+
+Now, we update the lambda function in background with the CLI with our new admin entrypoint. With return a fixed string this time, just for demo purpose and verification
+
+```bash
+ligo compile parameter ./smartcontract/pokeGame.jsligo 'UpdateFeedbackFunction((oracleAddress : address) : string => "YEAH!!!")' --output-file pokeGameParameter.tz  --protocol jakarta
+
+tezos-client transfer 0 from <ACCOUNT_KEY_NAME> to mycontract --arg "$(cat pokeGameParameter.tz)"
+```
+
+Mint 1 ticket, wait for confirmation and poke again , wait for confirmation and then click on button to refresh the contract list
+
+You see that the feedback has changed YEAH!!!  :metal:
+
+> Optional : fix your units tests
 
 ## Proxy pattern
 
