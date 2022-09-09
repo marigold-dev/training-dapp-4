@@ -63,6 +63,51 @@ sequenceDiagram
 |  | Need to sync/update frontend at each backend migration |
 |  | Lose reference to previous contract address, can lead to issues with other dependent contracts |
 
+
+## Stored Lambda function
+
+This time, the code will be on the storage and being executed at runtime
+
+Init
+
+```mermaid
+sequenceDiagram
+  Admin->>Tezos: originate smart contract with a lambda Map on storage, initialized Map.literal(list([["myfunction","<SOME_CODE>"]]))
+  Tezos-->>Admin: contractAddress
+```
+
+Interaction
+
+```mermaid
+sequenceDiagram
+  User->>SmartContract: transaction %myfunction
+  Note right of SmartContract : Tezos.exec(lambaMap.find_opt(myfunction))
+```
+
+Administration
+
+```mermaid
+sequenceDiagram
+  Admin->>SmartContract: transaction(["myfunction","<SOME_CODE>"],0,updateLambdaCode)
+  Note right of SmartContract : Check caller == admin
+  Note right of SmartContract : Map.add("myfunction","<SOME_CODE>",lambaMap)
+```
+
+### Pros/Cons
+
+| Pros | Cons |
+| --   |   -- |
+| No more migration of code and storage. Update the lambda function code that is on existing storage | If we want also storage, we need to store all in bytes PACKING/UNPACKING and we lose all type checking |
+| keep same contract address | IDE or tools do not work anymore on lambda code. Michelson does not protect us from some kinds of mistakes anymore |
+|  | Unexpected changes can cause other contract callers to fail, we lose interface benefits |
+|  | Harder to audit and trace, can lead to really big security nd Trust issues |
+|  | Storing everything as bytes is limited to PACK-able types like nat, string, list, set, map |
+
+### Implementation
+
+>
+
+
 ## Proxy pattern
 
 Goal is to have a proxy contract that maintain the application lifecycle, it is an enhancement of previous naive solution
@@ -109,49 +154,6 @@ sequenceDiagram
 ### Implementation
 
 > Full example can be found here : https://github.com/smart-chain-fr/tzip18/blob/main/contract/proxy.mligo
-
-## Stored Lambda function
-
-This time, the code will be on the storage and being executed at runtime
-
-Init
-
-```mermaid
-sequenceDiagram
-  Admin->>Tezos: originate smart contract with a lambda Map on storage, initialized Map.literal(list([["myfunction","<SOME_CODE>"]]))
-  Tezos-->>Admin: contractAddress
-```
-
-Interaction
-
-```mermaid
-sequenceDiagram
-  User->>SmartContract: transaction %myfunction
-  Note right of SmartContract : Tezos.exec(lambaMap.find_opt(myfunction))
-```
-
-Administration
-
-```mermaid
-sequenceDiagram
-  Admin->>SmartContract: transaction(["myfunction","<SOME_CODE>"],0,updateLambdaCode)
-  Note right of SmartContract : Check caller == admin
-  Note right of SmartContract : Map.add("myfunction","<SOME_CODE>",lambaMap)
-```
-
-### Pros/Cons
-
-| Pros | Cons |
-| --   |   -- |
-| No more migration of code and storage. Update the lambda function code that is on existing storage | If we want also storage, we need to store all in bytes PACKING/UNPACKING and we lose all type checking |
-| keep same contract address | IDE or tools do not work anymore on lambda code. Michelson does not protect us from some kinds of mistakes anymore |
-|  | Unexpected changes can cause other contract callers to fail, we lose interface benefits |
-|  | Harder to audit and trace, can lead to really big security nd Trust issues |
-|  | Storing everything as bytes is limited to PACK-able types like nat, string, list, set, map |
-
-### Implementation
-
->
 
 ## Alternative : Composability
 
