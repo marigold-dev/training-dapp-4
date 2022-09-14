@@ -35,7 +35,7 @@ But application lifecycle implies to evolve and upgrade code to fix bug or bring
 
 > Note : All below solutions break in a wait the fact that a smartcontract is immutable. We can preserve in a way **Trust** if the upgrade process has some security and authenticity around it. Like the first time an admin deploys a smartcontract, any user should be able to trust the code reading it with free read access, the same should apply to the upgrade process (notification of new code version, admin identification, whitelisted auditor reports, ...). To resume, if you really want to avoid DEVOPS centralization, you are about to create a DAO with a voting process amongs some selected users/administrators in order to deploy the new version of the smartcontract ... but let's simplify and talk here only about classical centralized admin deployment
 
-## Naive approach
+## :dizzy_face: Naive approach 
 
 One can deploy a new version of the smart contract and do a redirection to the new address on front end side 
 
@@ -64,7 +64,7 @@ sequenceDiagram
 |  | Lose reference to previous contract address, can lead to issues with other dependent contracts |
 
 
-## Stored Lambda function
+## Stored Lambda function :star:
 
 This time, the code will be on the storage and being executed at runtime
 
@@ -270,7 +270,7 @@ You see that the feedback has changed YEAH!!!  :metal:
 
 > Optional : fix your units tests
 
-## Proxy pattern
+## Proxy pattern :star::star:
 
 Goal is to have a proxy contract maintaining the application lifecycle, it is an enhancement of previous naive solution. We will have to deploy a complete new smartcontract, but this time we are not talking directly to this contract. Instead, the proxy remains the default entrypoint and keep same address.
 
@@ -978,7 +978,7 @@ Check on an indexer that storage.tzip18.contractNext is pointing to the next ver
 
 Managing a monolithic smartcontract like a microservice can reduce the problem, on the other side it increases complexity and application lifecycle on OPS side
 
-That's your tradeoff  :trollface: :children_crossing:
+That's your tradeoff  shrug :trollface: 
 
 # :palm_tree: Conclusion :sun_with_face:
 
