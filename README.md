@@ -983,3 +983,5 @@ That's your tradeoff  :shrug: :trollface:
 # :palm_tree: Conclusion :sun_with_face:
 
 Now, you are able to upgrade deployed contracts
+
+:new: Some ongoing works around TZIP-18 are coming to hide this complexity from the developers and to provide/automatize tools around it
