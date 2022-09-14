@@ -978,7 +978,7 @@ Check on an indexer that storage.tzip18.contractNext is pointing to the next ver
 
 Managing a monolithic smartcontract like a microservice can reduce the problem, on the other side it increases complexity and application lifecycle on OPS side
 
-That's your tradeoff  shrug :trollface: 
+That's your tradeoff  :shrug: :trollface: 
 
 # :palm_tree: Conclusion :sun_with_face:
 
