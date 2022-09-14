@@ -272,27 +272,30 @@ Init
 
 ```mermaid
 sequenceDiagram
-  Admin->>Tezos: originate smart contract with lastVersion
-  Tezos-->>Admin: contractAddress
-  Admin->>Tezos: originate proxy(admin,contractAddress,lastVersion)
+  Admin->>Tezos: originate proxy(admin,[])
+  Tezos-->>Admin: proxyAddress
+  Admin->>Tezos: originate smart contract(proxyAddress,v1)
+  Tezos-->>Admin: contractV1Address
+  Admin->>Proxy: upgrade([["endpoint",contractV1Address]],{new:contractV1Address})
 ```
 
 Interaction
 
 ```mermaid
 sequenceDiagram
-  User->>Proxy: transaction %endpoint
-  Proxy->>SmartContract@latest: transaction %endpoint
+  User->>Proxy: call("endpoint",payloadBytes)
+  Proxy->>SmartContractV1: main("endpoint",payloadBytes)
 ```
 
 Administration
 
 ```mermaid
 sequenceDiagram
-  Admin->>Proxy: transaction([newAddress,newVersion],0,Proxy%setDestination)
+  Admin->>Proxy: upgrade([["endpoint",contractV2Address]],{old:contractV1Address,new:contractV2Address})
   Note right of Proxy : Check caller == admin
-  Note right of Proxy : Storage : destination =  newAddress
-  Note right of Proxy : Storage : version =  newVersion
+  Note right of Proxy : storage.entrypoints.set["endpoint",contractV2Address]
+  Proxy->>SmartContractV1: main(["changeVersion",{old:contractV1Address,new:contractV2Address}])
+  Note right of SmartContractV1 : storage.tzip18.contractNext = contractV2Address
 ```
 
 > Note : 2 location choices for the smart contract storage :
