@@ -122,7 +122,7 @@ export type storage = {
 };
 ```
 
-Update the main function, you 1 more field on storage destructuring
+Update the main function, you have 1 additional field `feedbackFunction` on storage destructuring
 
 ```typescript
 export const main = ([action, store] : [parameter, storage]) : return_ => {
@@ -137,7 +137,7 @@ export const main = ([action, store] : [parameter, storage]) : return_ => {
 };
 ```
 
-Write the new PokeAndGetFeedback function where we will introduce the lamda call
+Edit the `PokeAndGetFeedback` function where we execute the lambda `feedbackFunction(..)`
 
 ```typescript
 // @no_mutation
@@ -166,7 +166,7 @@ On a first time we will inject the old code to check all still works and then we
 
 To modify the lambda function code we need an extra admin entrypoint `UpdateFeedbackFunction`
 
-Add this new entrypoint case on the `main` function switch-case pattern matching `match`. It just override the function definition. 
+Add this new entrypoint case on the `main` function switch-case pattern matching `match`. It takes a function definition coce and override existing one. 
 
 ```typescript
         UpdateFeedbackFunction : (newCode : feedbackFunction) => [list([]),{pokeTraces  , feedback  , ticketOwnership, feedbackFunction : newCode}] 
@@ -245,12 +245,18 @@ New contract KT1HRu51cEigmqa8jeLZkqXfL1QYHzSFAMdc originated.
 
 Time to go on the dapp to test
 
-Replace the contract address on dapp/src/App.tsx file with above value you got
+Replace the contract address on dapp/src/App.tsx file with above address from deployment, like on this extract
+
+```typescript
+... 
+... contractsService.getSimilar({address:"KT1HRu51cEigmqa8jeLZkqXfL1QYHzSFAMdc"   ...
+...
+```
 
 Mint 1 ticket, wait for confirmation and poke a contract address, wait for confirmation and then click on button to refresh the contract list
-So far so good, you have the same result as previous training
+So far so good, you have the same result as previous training :ok_hand:
 
-Now, we update the lambda function in background with the CLI with our new admin entrypoint. With return a fixed string this time, just for demo purpose and verification
+Now, we update the lambda function in background with the CLI with our new admin entrypoint. We return a fixed string this time, just for demo purpose and verify that the lambda executed is returning another output
 
 ```bash
 ligo compile parameter ./smartcontract/pokeGame.jsligo 'UpdateFeedbackFunction((oracleAddress : address) : string => "YEAH!!!")' --output-file pokeGameParameter.tz  --protocol jakarta
@@ -266,7 +272,7 @@ You see that the feedback has changed YEAH!!!  :metal:
 
 ## Proxy pattern
 
-Goal is to have a proxy contract that maintain the application lifecycle, it is an enhancement of previous naive solution. We will have to deploy a complete new smartcontract, by this time we are not talking directly to this version. Instead, the proxy remains the default entrypoint and keep same address.
+Goal is to have a proxy contract maintaining the application lifecycle, it is an enhancement of previous naive solution. We will have to deploy a complete new smartcontract, but this time we are not talking directly to this contract. Instead, the proxy remains the default entrypoint and keep same address.
 
 Init
 
@@ -311,6 +317,9 @@ sequenceDiagram
 | keep same contract address | If contract interface changed, we need to re-originating the proxy |
 
 ### Implementation
+
+
+#### Rewrite your smart contract to make it generic
 
 Rename your file `pokeGame.jsligo` to `pokeGameLambda.jsligo` (to save it somewhere and watch it later if needed ...)
 
@@ -430,7 +439,7 @@ const init = ([a, ticketCount, pokeTraces  , feedback  , ticketOwnership, tzip18
 };
 ```
 
-- The view call singature is different : 
+- The view call signature is different : 
   - it returns an optional bytes 
   - calling "getView" generic view exposed by the proxy
   - passing the viewname "feedback" (to disptach to the correct function once you reach the code that will be executed)
@@ -491,7 +500,7 @@ export const main = ([action, store] : [parameter, storage]) : return_ => {
 - As we don't have variant anymore, we break the pattern matching and do `if...else` statement
 - When a payload is passed, we unpack it and cast it with `(Bytes.unpack(action.payload) as option<MY_TYPE_HERE>)`. It means the caller and callee agree on payload structure for each endpoint
 
-Add the last missing function that change the version of this contract and make it obsolete
+Add the last missing function changing the version of this contract and make it obsolete
 
 ```typescript
 /**
@@ -502,7 +511,7 @@ const changeVersion = ([newAddress, pokeTraces  , feedback  , ticketOwnership, t
 };
 ```
 
-Finally, change the view to a generic one and do a switch on the first argument
+Finally, change the view to a generic one and do a `if...else` on `viewName` argument
 
 ```typescript
 // @view
@@ -511,8 +520,6 @@ const getView = ([viewName, store] : [string, storage]) : bytes => {
   else return failwith("View "+viewName+" not found on this contract");
 };
 ```
-
-
 
 Compile
 
@@ -523,7 +530,7 @@ ligo compile contract ./smartcontract/pokeGame.jsligo --output-file pokeGame.tz 
 All good :ok_hand:
 
 
-Second part, we write the unique proxy 
+#### Second part, we write the unique proxy 
 
 Create a file `./smartcontract/proxy.jsligo`
 
@@ -667,7 +674,7 @@ const upgrade = ([param ,s] : [[list<entrypointOperation> , option<changeVersion
 - It loops over the new interface schema to update and do so.
 - If a changeVersion is required, it calls the old contract to take the new version configuration (and desactivate itself so)
 
-Last change is to expose any view from underlying contract (has we have one)
+Last change is to expose any view from underlying contract (as we have one)
 
 ```typescript
 // @view
@@ -688,7 +695,7 @@ Compile
 ligo compile contract ./smartcontract/proxy.jsligo --output-file proxy.tz --protocol jakarta
 ```
 
-We have all ready for deployment :rocket:
+#### We have all ready for deployment :rocket:
 
 Redeploy to testnet, replacing `<ACCOUNT_KEY_NAME>` with your own user alias + `governance:XXXX` by your own user address ⚠️ . 
 First, deploy the proxy : 
@@ -725,7 +732,7 @@ ligo compile parameter ./smartcontract/proxy.jsligo 'Upgrade([list([ {name : "Po
 tezos-client transfer 0 from <ACCOUNT_KEY_NAME> to proxy --arg "$(cat proxyParameter.tz)" --burn-cap 1
 ```
 
-Lets' go to the frontend
+#### Lets' go to the frontend
 
 Update a bit some dependencies (i.e old version of taquito cannot fetch tickets on MichelsonMap for example)
 
@@ -953,7 +960,7 @@ Test the flow again
 
 Now, your proxy is calling the contract V2 and should return `hello`on the traces and no more `kiss`
 
-Last part is to set the old smart contract as obsolete
+#### Last part is to set the old smart contract as obsolete
 
 > Note : we could have do it in one row in a single transaction as all operations are done in sequence on the operation array
 
@@ -969,7 +976,9 @@ Check on an indexer that storage.tzip18.contractNext is pointing to the next ver
 
 ## Alternative : Composability
 
-Managing a monolithic smartcontract like a microservice can reduce the problem, on the other side it increase complexity and application lifecycle on OPS side
+Managing a monolithic smartcontract like a microservice can reduce the problem, on the other side it increases complexity and application lifecycle on OPS side
+
+That's your tradeoff  :trollface: :children_crossing:
 
 # :palm_tree: Conclusion :sun_with_face:
 
