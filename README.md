@@ -295,7 +295,7 @@ sequenceDiagram
   Note right of Proxy : Check caller == admin
   Note right of Proxy : storage.entrypoints.set["endpoint",contractV2Address]
   Proxy->>SmartContractV1: main(["changeVersion",{old:contractV1Address,new:contractV2Address}])
-  Note right of SmartContractV1 : storage.tzip18.contractNext = contractV2Address
+  Note left of SmartContractV1 : storage.tzip18.contractNext = contractV2Address
 ```
 
 > Note : 2 location choices for the smart contract storage :
