@@ -2,114 +2,114 @@
 # yarn lockfile v1
 
 
-"@airgap/beacon-blockchain-substrate@^3.1.2":
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/@airgap/beacon-blockchain-substrate/-/beacon-blockchain-substrate-3.1.2.tgz#6b8a03dc5e15d328c129780cc358d12069e96050"
-  integrity sha512-66F5fp1OW6H6INGABT0Xb/jL66qJ/0h7h0TF4wDg5FbOMhRoMyZrnBMAV/uCogUaAoHXz9NzQLBzKWsLc2kfVg==
+"@airgap/beacon-blockchain-substrate@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@airgap/beacon-blockchain-substrate/-/beacon-blockchain-substrate-3.1.4.tgz#0cd0c8c556fd780fc78d2a7911e72a7beb5f03a6"
+  integrity sha512-3282+3TZd/FvfDvotjkh8tutVP9xwX4kJD4S8QfkhJYnd5sqwcQSkkkpgMnfyZV9MKJlab9l1i1CkjXmfeeqCA==
   dependencies:
-    "@airgap/beacon-types" "^3.1.2"
-    "@airgap/beacon-ui" "^3.1.2"
+    "@airgap/beacon-types" "^3.1.4"
+    "@airgap/beacon-ui" "^3.1.4"
 
-"@airgap/beacon-blockchain-tezos@^3.1.2":
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/@airgap/beacon-blockchain-tezos/-/beacon-blockchain-tezos-3.1.2.tgz#79865e7e5a597c5d9a7e4e46cb4c86a8aa3b34fc"
-  integrity sha512-JchOha96z2QPcczzyWbtGLG3qOmpG+6GHBpaH2oB7QqsOHHLpCV4IXdrOT+6m77e0NSi2GrF+PPKXqUIghcO7g==
+"@airgap/beacon-blockchain-tezos@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@airgap/beacon-blockchain-tezos/-/beacon-blockchain-tezos-3.1.4.tgz#c465a7536ef901ae9b60eab83f024e91a4653783"
+  integrity sha512-W2ARfEWWCFUJcMT8HMDYYl+oHpbwN23SrTJpaS7/ycAKUrDYYSRhuPBczMA/Q3hhOsQKTXdNg48m9xI091Bg/Q==
   dependencies:
-    "@airgap/beacon-types" "^3.1.2"
-    "@airgap/beacon-ui" "^3.1.2"
+    "@airgap/beacon-types" "^3.1.4"
+    "@airgap/beacon-ui" "^3.1.4"
 
-"@airgap/beacon-core@^3.1.2":
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/@airgap/beacon-core/-/beacon-core-3.1.2.tgz#0501fb128ab61e264f84229204536764ac1fd44c"
-  integrity sha512-s1/UBZjywp6KALNuYbipU6p6SOlUeLja7aCrgfeDdu8h194qFGE2hQH69R0fYfeTbAZrd2g/ki57kMq33QErDQ==
+"@airgap/beacon-core@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@airgap/beacon-core/-/beacon-core-3.1.4.tgz#9e104a6a97ac298797c31479e0cb8deb9c91586e"
+  integrity sha512-GpSFjQL+larOigCRKtdEE4Dhl3cWOl0GP3tjVI6WSCExEAVKGE8EW37NDIgRDJwANFPAHt427wVcrk6slXqmbQ==
   dependencies:
-    "@airgap/beacon-types" "^3.1.2"
-    "@airgap/beacon-utils" "^3.1.2"
+    "@airgap/beacon-types" "^3.1.4"
+    "@airgap/beacon-utils" "^3.1.4"
     "@types/libsodium-wrappers" "0.7.9"
     bs58check "2.1.2"
     libsodium-wrappers "0.7.9"
 
-"@airgap/beacon-dapp@^3.1.1", "@airgap/beacon-dapp@^3.1.2":
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/@airgap/beacon-dapp/-/beacon-dapp-3.1.2.tgz#c163a781ecd80009646682196cf164f7562759cd"
-  integrity sha512-CkuA7LYOj6V27eHTdWSUFCioc2rq4lFjsg6qfsZDShm5/0O2apm1iDeAlXfLWyDEOz1UfEsV/UXZ+ZIwflym5A==
+"@airgap/beacon-dapp@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@airgap/beacon-dapp/-/beacon-dapp-3.1.4.tgz#923767731a754c8136ecec5632d872bb598bd607"
+  integrity sha512-/7OXrejWlI92pvZXOPqs6eLtC9XBXga0CIz60Uieif43kjRpwhiwm7qVOyjmDi9rRx19ZMP92YWJQX+nuovzbg==
   dependencies:
-    "@airgap/beacon-core" "^3.1.2"
-    "@airgap/beacon-transport-matrix" "^3.1.2"
-    "@airgap/beacon-transport-postmessage" "^3.1.2"
-    "@airgap/beacon-ui" "^3.1.2"
+    "@airgap/beacon-core" "^3.1.4"
+    "@airgap/beacon-transport-matrix" "^3.1.4"
+    "@airgap/beacon-transport-postmessage" "^3.1.4"
+    "@airgap/beacon-ui" "^3.1.4"
     qrcode-generator "1.4.4"
 
-"@airgap/beacon-sdk@^3.1.2":
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/@airgap/beacon-sdk/-/beacon-sdk-3.1.2.tgz#9f1df386f14745271f948068b917e28a4c5afc5a"
-  integrity sha512-L5eX8AmX9XHAYbzB4zjbQ9h+q+wMZL+zpSsqt4gqLRorbTXtrCjNg0l7vP0ah9Nz1g++TIEBLH3z/eQ7NcGKVA==
+"@airgap/beacon-sdk@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@airgap/beacon-sdk/-/beacon-sdk-3.1.4.tgz#39872f4dbb08257de75232fe8ea78d759ab04213"
+  integrity sha512-lCB1hYFztDVP+C3ib6V/yrMtV2lPNFjNFTaHyxXqCjUt9Zs/ln4UhaYFOzIvzF4hXecMziTIDJVD9ClqnM2VMw==
   dependencies:
-    "@airgap/beacon-blockchain-substrate" "^3.1.2"
-    "@airgap/beacon-blockchain-tezos" "^3.1.2"
-    "@airgap/beacon-core" "^3.1.2"
-    "@airgap/beacon-dapp" "^3.1.2"
-    "@airgap/beacon-transport-matrix" "^3.1.2"
-    "@airgap/beacon-transport-postmessage" "^3.1.2"
-    "@airgap/beacon-types" "^3.1.2"
-    "@airgap/beacon-ui" "^3.1.2"
-    "@airgap/beacon-utils" "^3.1.2"
-    "@airgap/beacon-wallet" "^3.1.2"
+    "@airgap/beacon-blockchain-substrate" "^3.1.4"
+    "@airgap/beacon-blockchain-tezos" "^3.1.4"
+    "@airgap/beacon-core" "^3.1.4"
+    "@airgap/beacon-dapp" "^3.1.4"
+    "@airgap/beacon-transport-matrix" "^3.1.4"
+    "@airgap/beacon-transport-postmessage" "^3.1.4"
+    "@airgap/beacon-types" "^3.1.4"
+    "@airgap/beacon-ui" "^3.1.4"
+    "@airgap/beacon-utils" "^3.1.4"
+    "@airgap/beacon-wallet" "^3.1.4"
 
-"@airgap/beacon-transport-matrix@^3.1.2":
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/@airgap/beacon-transport-matrix/-/beacon-transport-matrix-3.1.2.tgz#c34221767da3655de5ff6513cb64fc597e2747c6"
-  integrity sha512-666YE4B57hx2NIA5BeRvPJVscd2S7Nb/nlIUnztxxcRQYBV6A7Hlr1O5TjkocBdHd7B2Ir9gaPDDvfpqfkp1Hw==
+"@airgap/beacon-transport-matrix@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@airgap/beacon-transport-matrix/-/beacon-transport-matrix-3.1.4.tgz#002d0162b338da16aefc9b494eaad407b43dd491"
+  integrity sha512-IvZnylEqjXyB9JWvpgnSRMom9C5thK5JB88joL2/q24JI73MXTzBh50/GVNfwAat6Ct+ftbn36j17Kh5O/y4wg==
   dependencies:
-    "@airgap/beacon-core" "^3.1.2"
-    "@airgap/beacon-utils" "^3.1.2"
+    "@airgap/beacon-core" "^3.1.4"
+    "@airgap/beacon-utils" "^3.1.4"
     axios "0.24.0"
 
-"@airgap/beacon-transport-postmessage@^3.1.2":
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/@airgap/beacon-transport-postmessage/-/beacon-transport-postmessage-3.1.2.tgz#3f6de4a563b86a27597dde23c079538fd9d3aed3"
-  integrity sha512-tP08kjTROYsPjMDAN+zYyiOwyFEnveNj/t83vtT12a5VehIek0dF41X6j9X3TzMAn3hLGzzsRCScEXTzQ7CLqA==
+"@airgap/beacon-transport-postmessage@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@airgap/beacon-transport-postmessage/-/beacon-transport-postmessage-3.1.4.tgz#7d5691f9f44c1ad3cc65f80f6c4b37c3ca6f98c6"
+  integrity sha512-uEPtTZ7n5C03rNzpjgx1T1bS74DfVs39WEBHACKPhbX0RM5DGDveU/+T/iCJLpF3HTp3v65oomLIRXcL24JY/g==
   dependencies:
-    "@airgap/beacon-core" "^3.1.2"
-    "@airgap/beacon-types" "^3.1.2"
-    "@airgap/beacon-utils" "^3.1.2"
+    "@airgap/beacon-core" "^3.1.4"
+    "@airgap/beacon-types" "^3.1.4"
+    "@airgap/beacon-utils" "^3.1.4"
     "@types/libsodium-wrappers" "0.7.9"
     libsodium-wrappers "0.7.9"
 
-"@airgap/beacon-types@^3.1.2":
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/@airgap/beacon-types/-/beacon-types-3.1.2.tgz#dd7185288c357acd12c79297b4e45f60b0c69bc6"
-  integrity sha512-DezU+yfWwxZsighVMup5WAPFDOL1f99lVK99tz9bJFc0Gc4u5hcLZuUIdpg1isOf98fBwhcGeVNUTCUkh7Nsyg==
+"@airgap/beacon-types@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@airgap/beacon-types/-/beacon-types-3.1.4.tgz#b37efc455a5a904eaf9ca1bf8564a1ca11a624d0"
+  integrity sha512-x3HM0YKe4gA31lqopAOpP2YF5hfAiu2TQ0Pv/8pPLM/VHLJoJd19XF3WZyIL958tkLOmvNb3IUan1XPT1ENsqA==
   dependencies:
     "@types/chrome" "0.0.163"
 
-"@airgap/beacon-ui@^3.1.2":
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/@airgap/beacon-ui/-/beacon-ui-3.1.2.tgz#b53187dd6072a38be402d1b72ce2d90c3b5f0713"
-  integrity sha512-NOOuEl7AAh5YdCx6CSjKdzaqvR9clOiNQEGFEaff1Esne8X2hLicGNS5sYLFiB9ZRB9UrcGQ1+GZbM+HYswxuA==
+"@airgap/beacon-ui@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@airgap/beacon-ui/-/beacon-ui-3.1.4.tgz#e8e5377b4e5534bf86b97a65247ba94c7ff39b26"
+  integrity sha512-g/iiF53wfNAQ62htF2fbING6bwHiE1s/q0LJlxfUQx/OINmp9Gt1HrIdp92Af0QBi9db0hda6PlN4T4j4OKjaQ==
   dependencies:
-    "@airgap/beacon-core" "^3.1.2"
-    "@airgap/beacon-transport-postmessage" "^3.1.2"
-    "@airgap/beacon-types" "^3.1.2"
-    "@airgap/beacon-utils" "^3.1.2"
+    "@airgap/beacon-core" "^3.1.4"
+    "@airgap/beacon-transport-postmessage" "^3.1.4"
+    "@airgap/beacon-types" "^3.1.4"
+    "@airgap/beacon-utils" "^3.1.4"
 
-"@airgap/beacon-utils@^3.1.2":
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/@airgap/beacon-utils/-/beacon-utils-3.1.2.tgz#174f45e899450c844dcd9d726456d3eb1e534207"
-  integrity sha512-kaDFDSes54Zn/cc6Pvk9BfrrvrLwqTPNuEg15uzAQkDRsZ8e/t7SZ7KTNytw2OJPI0qG792zvd5uJwSG8a0Jdg==
+"@airgap/beacon-utils@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@airgap/beacon-utils/-/beacon-utils-3.1.4.tgz#de4b9c3eb9d4f83f9886fc1a698b2cb94aba8b70"
+  integrity sha512-hDDRgG7pU4h8hOLlgScBetjFTPHH3gTWEeKiFkVq/3LzqIe1c84JBaCDqMNpnxd9jenFo+/Q0jRj1zhvW6Bg6w==
   dependencies:
     "@types/libsodium-wrappers" "0.7.9"
     bs58check "2.1.2"
     libsodium-wrappers "0.7.9"
 
-"@airgap/beacon-wallet@^3.1.2":
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/@airgap/beacon-wallet/-/beacon-wallet-3.1.2.tgz#c3e99d262aa009be9bb85b51cd84a47dab750535"
-  integrity sha512-LNnS0qZylkutsUduS3yAovvIMqQOnDeEyRQ76km8WQKJxcpxCmwNYfizDexsc4nBpg7nYykgNTxZT595kJmCtw==
+"@airgap/beacon-wallet@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@airgap/beacon-wallet/-/beacon-wallet-3.1.4.tgz#1bd4c5e2a14a06893d6000bbc1ab217a9969ad05"
+  integrity sha512-N9esRbfuddsjD+TunJZscblTCWe2diQSefZDXZ6zYksU9OU1KLWb+lzSrytq3X6jZrNDLI9GmgBZQu0HDrvc6w==
   dependencies:
-    "@airgap/beacon-core" "^3.1.2"
-    "@airgap/beacon-transport-matrix" "^3.1.2"
-    "@airgap/beacon-transport-postmessage" "^3.1.2"
+    "@airgap/beacon-core" "^3.1.4"
+    "@airgap/beacon-transport-matrix" "^3.1.4"
+    "@airgap/beacon-transport-postmessage" "^3.1.4"
 
 "@ampproject/remapping@^2.1.0":
   version "2.1.2"
@@ -1588,11 +1588,11 @@
     "@stablelib/wipe" "^1.0.1"
 
 "@stablelib/ed25519@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@stablelib/ed25519/-/ed25519-1.0.2.tgz#937a88a2f73a71d9bdc3ea276efe8954776ae0f4"
-  integrity sha512-FtnvUwvKbp6l1dNcg4CswMAVFVu/nzLK3oC7/PRtjYyHbWsIkD8j+5cjXHmwcCpdCpRCaTGACkEhhMQ1RcdSOQ==
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@stablelib/ed25519/-/ed25519-1.0.3.tgz#f8fdeb6f77114897c887bb6a3138d659d3f35996"
+  integrity sha512-puIMWaX9QlRsbhxfDc5i+mNPMY+0TmQEskunY1rZEBPi1acBCVQAhnsk/1Hk50DGPtVsZtAWQg4NHGlVaO9Hqg==
   dependencies:
-    "@stablelib/random" "^1.0.1"
+    "@stablelib/random" "^1.0.2"
     "@stablelib/sha512" "^1.0.1"
     "@stablelib/wipe" "^1.0.1"
 
@@ -1606,10 +1606,10 @@
   resolved "https://registry.yarnpkg.com/@stablelib/int/-/int-1.0.1.tgz#75928cc25d59d73d75ae361f02128588c15fd008"
   integrity sha512-byr69X/sDtDiIjIV6m4roLVWnNNlRGzsvxw+agj8CIEazqWGOQp2dTYgQhtyVXV9wpO6WyXRQUzLV/JRNumT2w==
 
-"@stablelib/random@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@stablelib/random/-/random-1.0.1.tgz#4357a00cb1249d484a9a71e6054bc7b8324a7009"
-  integrity sha512-zOh+JHX3XG9MSfIB0LZl/YwPP9w3o6WBiJkZvjPoKKu5LKFW4OLV71vMxWp9qG5T43NaWyn0QQTWgqCdO+yOBQ==
+"@stablelib/random@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@stablelib/random/-/random-1.0.2.tgz#2dece393636489bf7e19c51229dd7900eddf742c"
+  integrity sha512-rIsE83Xpb7clHPVRlBj8qNe5L8ISQOzjghYQm/dZ7VaM2KHYwMW5adjQjrzTZCchFnNCNhkwtnOBa9HTMJCI8w==
   dependencies:
     "@stablelib/binary" "^1.0.1"
     "@stablelib/wipe" "^1.0.1"
@@ -1741,77 +1741,78 @@
     "@svgr/plugin-svgo" "^5.5.0"
     loader-utils "^2.0.0"
 
-"@taquito/beacon-wallet@^13.0.0":
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/@taquito/beacon-wallet/-/beacon-wallet-13.0.0.tgz#a7ddda3f11fb68c8ecc3ce4ce0a0761496b2d033"
-  integrity sha512-8E0iDfDi6UP5BRowiXxlE5urxA2vn2te+BXPoUFuAhmaDJQ8zjoPA8JOj39OT5J+PFVyJUgypkz5Mu3DPMknkA==
+"@taquito/beacon-wallet@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/@taquito/beacon-wallet/-/beacon-wallet-14.0.0.tgz#9267ec4e85d7e616618ba6bd4bf6d51055e1f972"
+  integrity sha512-v9Fyx5heMOHbZGCWnVPqJqyrHxXgbtH8H4RBOnNI8m7KAq9RtQLwitj6FONcXpEcNzmMzgbIDeom/oizoOfOSQ==
   dependencies:
-    "@airgap/beacon-dapp" "^3.1.1"
-    "@taquito/taquito" "^13.0.0"
+    "@airgap/beacon-dapp" "^3.1.4"
+    "@taquito/taquito" "^14.0.0"
     libsodium-wrappers "0.7.9"
 
-"@taquito/http-utils@^13.0.0":
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/@taquito/http-utils/-/http-utils-13.0.0.tgz#bbad571ef07740b52c8bc56c7663fc6568b4b66c"
-  integrity sha512-WNCGi0HyocFkNSLekBfHqKqnGB2kQ5gCKgIXoh2UVyuHTq3W5dWJO7pMVfeVSf9nYLVnsoIIfEC/d7jY7HIYQw==
+"@taquito/http-utils@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/@taquito/http-utils/-/http-utils-14.0.0.tgz#20470f8e08d33451241742221d416c72a70d881b"
+  integrity sha512-ZWZzod/+/OEE26b9CnDRjHGfUKBJft3aXv/e/A9bTHAtvRNJqGIhofHcDg/jTaolBMarCF2b3XBYw35aOOSk4A==
   dependencies:
     axios "^0.26.0"
 
-"@taquito/local-forging@^13.0.0":
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/@taquito/local-forging/-/local-forging-13.0.0.tgz#03f2dcda36bca5af0f5c9b60701ed7376ab8589a"
-  integrity sha512-59w1U94072FVgzAVRjADit26vHJ7lA7aC34ra9QWHVTYNul/S/+cvcGVCrRen8dt11NKytQCzkrRblh2xXFKeQ==
+"@taquito/local-forging@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/@taquito/local-forging/-/local-forging-14.0.0.tgz#6844d90fa530d39ce7aaaa8cd11c8723d494a7d9"
+  integrity sha512-Nm0xGmS1Jzd+tU0a/8Y8XuTghbiPBgHDLo+e4141TK3OAwTzOw0an+w3xK9QVfzvxfIcZBSMjeMZzOwDdiqkJQ==
   dependencies:
-    "@taquito/utils" "^13.0.0"
+    "@taquito/utils" "^14.0.0"
     bignumber.js "^9.0.2"
 
-"@taquito/michel-codec@^13.0.0":
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/@taquito/michel-codec/-/michel-codec-13.0.0.tgz#c6610f25739d7f6322e1ce72118a7ce0669b64df"
-  integrity sha512-t+1UopQO6dHzUpkrs/e3EyNtnm5wn1I8CJrj+OzYAm0ZCC2gns5d7e7Xm9nRQpU9xPFXNKqlmGUPuh5az513sA==
+"@taquito/michel-codec@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/@taquito/michel-codec/-/michel-codec-14.0.0.tgz#53d09e956b04359b43ff2a1e8a487c6da20c5a5f"
+  integrity sha512-ftnBvUVddlHBqvQbGPHEb26KrS4lIcaZ1eIpYJWiz+akb4Pcfyq7j/OEsDZbB7Pl2FP9hqu7ZygOF34zY6Lrtw==
 
-"@taquito/michelson-encoder@^13.0.0":
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/@taquito/michelson-encoder/-/michelson-encoder-13.0.0.tgz#48a41ceb8dea2da14c1ba5ad53617bb39de842c8"
-  integrity sha512-6R9U4kUlGLSK36OmSfKqU0GF+5+wwAhlqjgZhRYOdWjZ0kzeoPAAxLLC0kriZ5CZJBKr4ZSIrd64dtk4VdE/8w==
+"@taquito/michelson-encoder@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/@taquito/michelson-encoder/-/michelson-encoder-14.0.0.tgz#f62a1ef3cb432c4c9163f20161a73d772b98dda1"
+  integrity sha512-KIS+xl4rKfnd6hf9LUr6W+Pb7gv8F/Qsx0fho9CtM2PodKvdef3YlvkpScBUM9QZntAlvq2XQXUVXcZkbvxygw==
   dependencies:
-    "@taquito/rpc" "^13.0.0"
-    "@taquito/utils" "^13.0.0"
+    "@taquito/rpc" "^14.0.0"
+    "@taquito/utils" "^14.0.0"
     bignumber.js "^9.0.2"
     fast-json-stable-stringify "^2.1.0"
 
-"@taquito/rpc@^13.0.0":
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/@taquito/rpc/-/rpc-13.0.0.tgz#0917bbc9d7c7d42e5954c28bb9b0c9a7293b3fb8"
-  integrity sha512-g3CmrdCCEH5KiXIaAeZJ4RYYPtpitqTiv7GeDyYypOdUDQ1OBF/3c8d/Apx92bvSwbI/0I7nX46wtZHahWavmg==
+"@taquito/rpc@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/@taquito/rpc/-/rpc-14.0.0.tgz#30bd353a485abba0a74477e1b0eac454076b30e9"
+  integrity sha512-FMfb80sA+VJwNx8OTNN07boDAt2roISqLLCUgmOIwy/cFDqhII7gdS4aYWJWqlKbdPKCPqh3a3ZQD1X/jyQHOA==
   dependencies:
-    "@taquito/http-utils" "^13.0.0"
-    "@taquito/utils" "^13.0.0"
+    "@taquito/http-utils" "^14.0.0"
+    "@taquito/utils" "^14.0.0"
     bignumber.js "^9.0.2"
 
-"@taquito/taquito@^13.0.0":
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/@taquito/taquito/-/taquito-13.0.0.tgz#df08da00626e82ee83ee1f8f6c34041a92d64d3a"
-  integrity sha512-OhMAwDtDvoXkvZmiO1XgshtlLplQ+BGzciQe8sNuinHC2j8vV2aFxBiU/pSlc5WIU6RpIjQxaohFEaF3XZ7yrw==
+"@taquito/taquito@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/@taquito/taquito/-/taquito-14.0.0.tgz#7dc8dccbe164f5ef52d61e40f9a8084da340b172"
+  integrity sha512-JaXfvqOCF3dkwXxhe00Ravb8WLMC2VqJxerf4GrGUEpJw+NAkwbGEb8k/52+MQQdlxMPepZdPPru/HM3nFG0Tw==
   dependencies:
-    "@taquito/http-utils" "^13.0.0"
-    "@taquito/local-forging" "^13.0.0"
-    "@taquito/michel-codec" "^13.0.0"
-    "@taquito/michelson-encoder" "^13.0.0"
-    "@taquito/rpc" "^13.0.0"
-    "@taquito/utils" "^13.0.0"
+    "@taquito/http-utils" "^14.0.0"
+    "@taquito/local-forging" "^14.0.0"
+    "@taquito/michel-codec" "^14.0.0"
+    "@taquito/michelson-encoder" "^14.0.0"
+    "@taquito/rpc" "^14.0.0"
+    "@taquito/utils" "^14.0.0"
     bignumber.js "^9.0.2"
     rxjs "^6.6.3"
 
-"@taquito/utils@^13.0.0":
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/@taquito/utils/-/utils-13.0.0.tgz#1b39f8f2227dbdc98e4729ff8cbd7f4fdeff937a"
-  integrity sha512-b6uD3VOb8YSrExEH5beicDSNGuEfuH2qvJYx4FX5OI+EfXa9EfORfUNNsHzkEn/Rh3Ue3jKFbymPvkFhM95uiw==
+"@taquito/utils@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/@taquito/utils/-/utils-14.0.0.tgz#2fdbf0de677b5ef68e8a6d618a6a996195ae170b"
+  integrity sha512-0RSHn/CzbcbMdldJJIlXyxOvAajwmL6iPKJ6NaRyYJqqLM2CxYjG72KpXVv716pCMV1MbIWsOAr9FKbxW73PsA==
   dependencies:
     "@stablelib/blake2b" "^1.0.1"
     "@stablelib/ed25519" "^1.0.2"
     "@types/bs58check" "^2.1.0"
-    blakejs "^1.1.1"
+    bignumber.js "^9.0.2"
+    blakejs "^1.2.1"
     bs58check "^2.1.2"
     buffer "^6.0.3"
     elliptic "^6.5.4"
@@ -2092,9 +2093,9 @@
   integrity sha512-YATxVxgRqNH6nHEIsvg6k2Boc1JHI9ZbH5iWFFv/MTkchz3b1ieGDa5T0a9RznNdI0KhVbdbWSN+KWWrQZRxTw==
 
 "@types/node@*":
-  version "18.0.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.0.1.tgz#e91bd73239b338557a84d1f67f7b9e0f25643870"
-  integrity sha512-CmR8+Tsy95hhwtZBKJBs0/FFq4XX7sDZHlGGf+0q+BRZfMbOTkzkj0AFAuTyXbObDIoanaBBW0+KEW+m3N16Wg==
+  version "18.7.18"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.7.18.tgz#633184f55c322e4fb08612307c274ee6d5ed3154"
+  integrity sha512-m+6nTEOadJZuTPkKR/SYK3A2d7FZrgElol9UP1Kae90VVU4a6mxnPuLiIW1m4Cq4gZ/nWb9GrdVXJCoCazDAbg==
 
 "@types/node@^16.7.13":
   version "16.11.26"
@@ -2964,16 +2965,16 @@ big.js@^5.2.2:
   integrity sha512-vyL2OymJxmarO8gxMr0mhChsO9QGwhynfuu4+MHTAW6czfq9humCB7rKpUjDd9YUiDPU4mzpyupFSvOClAwbmQ==
 
 bignumber.js@^9.0.2:
-  version "9.0.2"
-  resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-9.0.2.tgz#71c6c6bed38de64e24a65ebe16cfcf23ae693673"
-  integrity sha512-GAcQvbpsM0pUb0zw1EI0KhQEZ+lRwR5fYaAp3vPOYuP7aDvGy6cVN6XHLauvF8SOga2y0dcLcjt3iQDTSEliyw==
+  version "9.1.0"
+  resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-9.1.0.tgz#8d340146107fe3a6cb8d40699643c302e8773b62"
+  integrity sha512-4LwHK4nfDOraBCtst+wOWIHbu1vhvAPJK8g8nROd4iuc3PSEjWif/qwbkh8jwCJz6yDBvtU4KPynETgrfh7y3A==
 
 binary-extensions@^2.0.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-2.2.0.tgz#75f502eeaf9ffde42fc98829645be4ea76bd9e2d"
   integrity sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==
 
-blakejs@^1.1.1:
+blakejs@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/blakejs/-/blakejs-1.2.1.tgz#5057e4206eadb4a97f7c0b6e197a505042fc3814"
   integrity sha512-QXUSXI3QVc/gJME0dBpXrag1kbzOqCjCX8/b54ntNyW6sjtoqxqRk3LTmXzaJoh71zMsDCjM+47jS7XiwN/+fQ==
@@ -4785,9 +4786,9 @@ follow-redirects@^1.0.0:
   integrity sha512-MQDfihBQYMcyy5dhRDJUHcw7lb2Pv/TuE6xP1vyraLukNDHKbDxDNaOE3NbCAdKQApno+GPRyo1YAp89yCjK4w==
 
 follow-redirects@^1.14.4, follow-redirects@^1.14.8:
-  version "1.15.1"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.1.tgz#0ca6a452306c9b276e4d3127483e29575e207ad5"
-  integrity sha512-yLAMQs+k0b2m7cVxpS1VKJVvoz7SS9Td1zss3XRwXj+ZDH00RJgnuLx7E44wx02kQLrdM3aOOy+FpzS7+8OizA==
+  version "1.15.2"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.2.tgz#b460864144ba63f2681096f274c4e57026da2c13"
+  integrity sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==
 
 foreach@^2.0.5:
   version "2.0.5"

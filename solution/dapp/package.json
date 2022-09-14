@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@airgap/beacon-sdk": "^3.1.2",
+    "@airgap/beacon-sdk": "^3.1.4",
     "@dipdup/tzkt-api": "^0.0.1",
-    "@taquito/beacon-wallet": "^13.0.0",
-    "@taquito/taquito": "^13.0.0",
+    "@taquito/beacon-wallet": "^14.0.0",
+    "@taquito/taquito": "^14.0.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.0.0",
     "@testing-library/user-event": "^13.2.1",
@@ -45,6 +45,7 @@
     ]
   },
   "devDependencies": {
+    "@airgap/beacon-types": "^3.1.4",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.0",

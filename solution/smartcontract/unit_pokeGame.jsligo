@@ -12,6 +12,13 @@ const _ = Test.log(Test.get_balance(sender1));
 const _ = Test.set_baker(faucet);
 const _ = Test.set_source(faucet);
 
+const lambda1 = (oracleAddress : address) : string => {
+    return match( Tezos.call_view("feedback", unit, oracleAddress) as option<string> , {
+        Some : (feedback : string) => feedback, 
+        None : () => failwith("Cannot find view feedback on given oracle address")
+    });
+};
+
 //functions
 export const _testPoke = ([main , s, ticketCount] : [main_fn , address, nat]) : bool => {
 
@@ -19,7 +26,8 @@ export const _testPoke = ([main , s, ticketCount] : [main_fn , address, nat]) : 
     const [taddr, _, _] = Test.originate(main, {
         pokeTraces : Map.empty as map<address, PokeGame.pokeMessage> , 
         feedback : "kiss" , 
-        ticketOwnership : Map.empty as map<address,ticket<string>>},
+        ticketOwnership : Map.empty as map<address,ticket<string>>,
+        feedbackFunction : lambda1},
         0 as tez);
     const contr = Test.to_contract(taddr);
     const contrAddress = Tezos.address(contr);

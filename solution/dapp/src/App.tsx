@@ -1,13 +1,29 @@
+import { Contract, ContractsService } from '@dipdup/tzkt-api';
+import { PackDataResponse } from "@taquito/rpc";
+import { MichelCodecPacker, MichelsonMap, TezosToolkit, WalletContract } from '@taquito/taquito';
 import { useState } from 'react';
 import './App.css';
 import ConnectButton from './ConnectWallet';
-import { TezosToolkit, WalletContract } from '@taquito/taquito';
 import DisconnectButton from './DisconnectWallet';
-import { Contract, ContractsService } from '@dipdup/tzkt-api';
+
+type entrypointType = {
+  method  : string,
+  addr    : string
+};
+
+type storage = {
+  governance : string, //admins
+  entrypoints : MichelsonMap<string,entrypointType> //interface schema map
+};
 
 type pokeMessage = {
   receiver : string,
   feedback : string
+};
+
+type callContract = { 
+  entrypointName : string, 
+  payload         : string //hexadecimal
 };
 
 function App() {
@@ -19,13 +35,21 @@ function App() {
 
   const [contractToPoke, setContractToPoke] = useState<string>("");
   
+  Tezos.setPackerProvider(new MichelCodecPacker());
+
+
   //tzkt
   const contractsService = new ContractsService( {baseUrl: "https://api.jakartanet.tzkt.io" , version : "", withCredentials : false});
   const [contracts, setContracts] = useState<Array<Contract>>([]);
   
   const fetchContracts = () => {
     (async () => {
-      setContracts((await contractsService.getSimilar({address:"KT1HRu51cEigmqa8jeLZkqXfL1QYHzSFAMdc" , includeStorage:true, sort:{desc:"id"}})));    })();
+      let contracts = (await contractsService.getSimilar({address:"KT1VYjTExoE5EHJkT6mBWWoW7BcsHqnJBdgp" , includeStorage:true, sort:{desc:"id"}}));
+      contracts = await Promise.all(contracts.map(async (c:Contract) => await extractContractStorage(c)));
+      console.log("contracts",contracts);
+      
+      setContracts(contracts);
+    })();
   }
   
   //poke
@@ -34,7 +58,14 @@ function App() {
     let c : WalletContract = await Tezos.wallet.at(""+contract.address);
     try {
       console.log("contractToPoke",contractToPoke);
-      const op = await c.methods.pokeAndGetFeedback(contractToPoke).send();
+      const p = new MichelCodecPacker(); 
+      let contractToPokeBytes: PackDataResponse = await p.packData({
+        data: { string: contractToPoke },
+        type: { prim: "address" }
+      });
+      console.log("packed",contractToPokeBytes.packed);
+
+      const op = await c.methods.call("PokeAndGetFeedback",contractToPokeBytes.packed).send();
       await op.confirmation();
       alert("Tx done");
     } catch (error : any) {
@@ -49,7 +80,14 @@ function App() {
       let c : WalletContract = await Tezos.wallet.at(""+contract.address);
       try {
         console.log("contractToPoke",contractToPoke);
-        const op = await c.methods.init(userAddress,1).send();
+        
+        const p = new MichelCodecPacker(); 
+        let initBytes: PackDataResponse = await p.packData({
+          data: { prim : "Pair" , args : [{string: userAddress},{int:"1"}]  },
+          type: { prim : "Pair" , args : [{prim: "address"},{prim : "nat"}]  }
+        });
+        const op = await c.methods.call("Init",initBytes.packed).send();
+
         await op.confirmation();
         alert("Tx done");
       } catch (error : any) {
@@ -58,6 +96,17 @@ function App() {
       }
     };
   
+    //alter proxy to add underlying storage
+  const extractContractStorage = async (proxy : Contract) : Promise<Contract> => {
+    //get contract address from first entrypoint
+    let taquitocontract = await Tezos.wallet.at(""+proxy.address);
+    const taquitoStorage : storage = await taquitocontract.storage() as storage;    
+    let firstEp : entrypointType | undefined  = await taquitoStorage.entrypoints.get("Poke"); 
+    let underlyingContract : WalletContract = await Tezos.wallet.at(""+firstEp!.addr);
+    proxy.storage.underlyingContract = await underlyingContract.storage();
+    //console.log("underlyingContract",proxy.storage.underlyingContract);
+    return new Promise((resolve,reject)=>resolve(proxy));
+  }
   
   return (
     <div className="App">
@@ -90,7 +139,10 @@ function App() {
     <table><thead><tr><th>address</th><th>trace "contract - feedback - user"</th><th>action</th></tr></thead><tbody>
     {contracts.map((contract) => <tr>
       <td style={{borderStyle: "dotted"}}>{contract.address}</td>
-      <td style={{borderStyle: "dotted"}}>{(contract.storage !== null && contract.storage.pokeTraces !== null && Object.entries(contract.storage.pokeTraces).length > 0)?Object.keys(contract.storage.pokeTraces).map((k : string)=>contract.storage.pokeTraces[k].receiver+" "+contract.storage.pokeTraces[k].feedback+" "+k+","):""}</td>
+      <td style={{borderStyle: "dotted"}}>{(contract.storage !== null && contract.storage.underlyingContract.pokeTraces !== null 
+        && contract.storage.underlyingContract.pokeTraces.size > 0)?
+        Array.from((contract.storage.underlyingContract.pokeTraces as MichelsonMap<string,pokeMessage>).keys()).map((k : string)=>contract.storage.underlyingContract.pokeTraces.get(k).receiver+" "+contract.storage.underlyingContract.pokeTraces.get(k).feedback+" "+k+",")
+        :""}</td>
       <td style={{borderStyle: "dotted"}}><input type="text" onChange={e=>{console.log("e",e.currentTarget.value);setContractToPoke(e.currentTarget.value)}} placeholder='enter contract address here' />
                                           <button onClick={(e) =>poke(e,contract)}>Poke</button>
                                           <button onClick={(e)=>mint(e,contract)}>Mint 1 ticket</button></td>
