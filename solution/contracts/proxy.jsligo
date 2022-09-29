@@ -1,7 +1,3 @@
-/** 
-* proxy contract
-**/
-
 type callContract = { 
   entrypointName : string, 
   payload         : bytes
@@ -19,8 +15,8 @@ type entrypointOperation = {
 };
 
 type changeVersion = {
-  old : address,
-  new : address
+  oldAddr : address,
+  newAddr : address
 };
 
 type storage = {
@@ -86,11 +82,11 @@ const upgrade = ([param ,s] : [[list<entrypointOperation> , option<changeVersion
   return match(changeVersionOpt,{
    None : ()      => [(list([]) as list<operation>), {...s, entrypoints : new_entrypoints}],
    Some : (change : changeVersion) => {
-                let op_change : operation = match( (Tezos.get_contract_opt(change.old) as option<contract<callContract>>), {
+                let op_change : operation = match( (Tezos.get_contract_opt(change.oldAddr) as option<contract<callContract>>), {
                          None : ()  => failwith("No contract found at this address"),
                          Some : (contract:contract) => {
                                         let amt = Tezos.get_amount();  
-                                        let payload : address = change.new;
+                                        let payload : address = change.newAddr;
                                         return Tezos.transaction({entrypointName : "changeVersion", payload : Bytes.pack(payload)}, amt, contract);
                                         }
                         });

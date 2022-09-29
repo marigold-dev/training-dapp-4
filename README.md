@@ -221,52 +221,99 @@ const init = ([a, ticketCount, pokeTraces  , feedback  , ticketOwnership, feedba
 };
 ```
 
+Change also the initial storage with the old initial value of the lambda function (i.e calling a view to get a feedback) 
+
+```typescript
+#include "pokeGame.jsligo"
+const default_storage = {
+    pokeTraces : Map.empty as map<address, pokeMessage>,
+    feedback : "kiss",
+    ticketOwnership : Map.empty as map<address,ticket<string>>,  //ticket of claims
+    feedbackFunction : ((oracleAddress : address) : string => { return match( Tezos.call_view("feedback", unit, oracleAddress) as option<string> , { Some : (feedback : string) => feedback,  None : () => failwith("Cannot find view feedback on given oracle address")  }); })
+};
+```
+
 Time to compile and play with the CLI
 
+> Note : check that Docker is running
+
 ```bash
-ligo compile contract ./smartcontract/pokeGame.jsligo --output-file pokeGame.tz --protocol jakarta
+yarn install
+taq compile pokeGame.jsligo
 ```
 
-Compile an initial storage. Here we inject the old initial value of the lambda function (i.e calling a view to get a feedback) 
+Redeploy to testnet
 
 ```bash
-ligo compile storage ./smartcontract/pokeGame.jsligo '{pokeTraces : Map.empty as map<address, pokeMessage> , feedback : "kiss" , ticketOwnership : Map.empty as map<address,ticket<string>>,feedbackFunction : ((oracleAddress : address) : string => { return match( Tezos.call_view("feedback", unit, oracleAddress) as option<string> , { Some : (feedback : string) => feedback,  None : () => failwith("Cannot find view feedback on given oracle address")  }); }) }' --output-file pokeGameStorage.tz  --protocol jakarta
-```
-
-Redeploy to testnet, replacing <ACCOUNT_KEY_NAME> with your own user alias ⚠️
-
-```bash
-tezos-client originate contract mycontract transferring 0 from <ACCOUNT_KEY_NAME> running pokeGame.tz --init "$(cat pokeGameStorage.tz)" --burn-cap 1 --force
+taq deploy pokeGame.tz -e testing
 ```
 
 ```logs
-New contract KT1HRu51cEigmqa8jeLZkqXfL1QYHzSFAMdc originated.
+┌─────────────┬──────────────────────────────────────┬──────────┬─────────────┐
+│ Contract    │ Address                              │ Alias    │ Destination │
+├─────────────┼──────────────────────────────────────┼──────────┼─────────────┤
+│ pokeGame.tz │ KT1NNmpuVCZYNQ9eFFNSRecuzxtvb8Zqx1Fk │ pokeGame │ ghostnet    │
+└─────────────┴──────────────────────────────────────┴──────────┴─────────────┘
 ```
 
 Time to go on the dapp to test
 
-Replace the contract address on dapp/src/App.tsx file with above address from deployment, like on this extract
+Regenerate types and run the frontend
 
-```typescript
-... 
-... contractsService.getSimilar({address:"KT1HRu51cEigmqa8jeLZkqXfL1QYHzSFAMdc"   ...
-...
+```bash
+taq generate types ./app/src
+cd app
+yarn run start
 ```
 
-Mint 1 ticket, wait for confirmation and poke a contract address, wait for confirmation and then click on button to refresh the contract list
+> Note : like in previous training, export the `Storage` type on `./app/src/pokeGame.types.ts` like this `export type Storage = { `
+> Bug : on taqueria version <= v0.19.3, lambda type are not supported. add the type manually on `./app/src/pokeGame.types.ts` like this `type lambda = (oracleAddress : address) => string; ` and remove the wrong import `lambda` from './type-aliases'
+
+Run the user sequence on the web page : 
+1. Mint 1 ticket
+1. wait for confirmation
+1. poke a contract address
+1. wait for confirmation
+1. click on button to refresh the contract list
 So far so good, you have the same result as previous training :ok_hand:
 
 Now, we update the lambda function in background with the CLI with our new admin entrypoint. We return a fixed string this time, just for demo purpose and verify that the lambda executed is returning another output
 
 ```bash
-ligo compile parameter ./smartcontract/pokeGame.jsligo 'UpdateFeedbackFunction((oracleAddress : address) : string => "YEAH!!!")' --output-file pokeGameParameter.tz  --protocol jakarta
-
-tezos-client transfer 0 from <ACCOUNT_KEY_NAME> to mycontract --arg "$(cat pokeGameParameter.tz)"
+taq create contract pokeGame.parameters.jsligo
 ```
 
-Mint 1 ticket, wait for confirmation and poke again , wait for confirmation and then click on button to refresh the contract list
+Edit the file to change the lambda function
 
-You see that the feedback has changed YEAH!!!  :metal:
+```typescript
+#include "pokeGame.jsligo"
+const default_parameter = UpdateFeedbackFunction((oracleAddress : address) : string => "YEAH!!!");
+```
+
+Compile all and call an init transaction
+
+```bash
+taq compile pokeGame.jsligo 
+taq call pokeGame --param pokeGame.parameter.default_parameter.tz -e testing
+```
+
+```logs
+┌────────────────┬──────────────────────────────────────┬──────────────┬──────────────────────────────────────────────────┬────────────┬─────────────────────────────────────┐
+│ Contract Alias │ Contract Address                     │ Tez Transfer │ Parameter                                        │ Entrypoint │ Destination                         │
+├────────────────┼──────────────────────────────────────┼──────────────┼──────────────────────────────────────────────────┼────────────┼─────────────────────────────────────┤
+│ pokeGame       │ KT1NNmpuVCZYNQ9eFFNSRecuzxtvb8Zqx1Fk │ 0            │ (Right (Right { DROP ; PUSH string "YEAH!!!" })) │ default    │ https://ghostnet.tezos.marigold.dev │
+│                │                                      │              │                                                  │            │                                     │
+└────────────────┴──────────────────────────────────────┴──────────────┴──────────────────────────────────────────────────┴────────────┴─────────────────────────────────────┘
+```
+
+Run the user sequence on the web page : 
+1. Mint 1 ticket
+1. wait for confirmation
+1. poke a contract address
+1. wait for confirmation
+1. click on button to refresh the contract list
+
+You see that the feedback has changed `YEAH!!!`  :metal:
 
 > Optional : fix your units tests
 
@@ -315,20 +362,26 @@ sequenceDiagram
 | Migration is transparent for frontend | smart contract code `Tezos.SENDER` will always refer to the proxy, so need to be careful |
 | if storage is unchanged, we can keep storage at proxy level without cost | If storage changes, need to migrate storage from old contract to new contract and it costs money and having storage at proxy level is not more possible |
 | keep same contract address | If contract interface changed, we need to re-originating the proxy |
+|  | we need a lot of types in bytes playing with PACKING/UNPACKING and we lose all type checking |
+|  | IDE or tools do not work anymore on lambda code. Michelson does not protect us from some kinds of mistakes anymore |
+|  | Unexpected changes can cause other contract callers to fail, we lose interface benefits |
+|  | Harder to audit and trace, can lead to really big security nd Trust issues |
+|  | Storing everything as bytes is limited to PACK-able types like nat, string, list, set, map |
 
 ### Implementation
 
 
 #### Rewrite your smart contract to make it generic
 
-Rename your file `pokeGame.jsligo` to `pokeGameLambda.jsligo` (to save it somewhere and watch it later if needed ...)
+* Rename your file `pokeGame.jsligo` to `pokeGameLambda.jsligo` (to save it somewhere and watch it later if needed ...) 
+* Remove pokeGame.parameters.jsligo
 
 Get back the original version of `pokeGame.jsligo` from previous training (again, it will be easier to start from here)
 
-Create a new file `./smartcontract/tzip18.jsligo`
+Create a new file `tzip18.jsligo`
 
 ```bash
-touch ./smartcontract/tzip18.jsligo
+taq create contract tzip18.jsligo
 ```
 
 Edit the file
@@ -500,7 +553,7 @@ export const main = ([action, store] : [parameter, storage]) : return_ => {
 - As we don't have variant anymore, we break the pattern matching and do `if...else` statement
 - When a payload is passed, we unpack it and cast it with `(Bytes.unpack(action.payload) as option<MY_TYPE_HERE>)`. It means the caller and callee agree on payload structure for each endpoint
 
-Add the last missing function changing the version of this contract and make it obsolete
+Add the last missing function changing the version of this contract and make it obsolete (just before the main function)
 
 ```typescript
 /**
@@ -521,20 +574,41 @@ const getView = ([viewName, store] : [string, storage]) : bytes => {
 };
 ```
 
+Change the initial storage
+> Note : for the moment we set the proxy address to fake KT1 address because we have not yet deploy the proxy
+
+```typescript
+#include "pokeGame.jsligo"
+const default_storage = {
+    pokeTraces : Map.empty as map<address, pokeMessage>,
+    feedback : "kiss",
+    ticketOwnership : Map.empty as map<address,ticket<string>>,  //ticket of claims
+    tzip18 : {
+                proxy : "KT1NNmpuVCZYNQ9eFFNSRecuzxtvb8Zqx1Fk" as address,
+                version : 1 as nat,
+                contractPrevious : None() as option<address>,
+                contractNext : None() as option<address> 
+             }
+};
+```
+
 Compile
 
 ```bash
-ligo compile contract ./smartcontract/pokeGame.jsligo --output-file pokeGame.tz --protocol jakarta
+taq compile pokeGame.jsligo
 ```
 
 All good :ok_hand:
 
-
 #### Second part, we write the unique proxy 
 
-Create a file `./smartcontract/proxy.jsligo`
+Create a file `proxy.jsligo`
 
-Let's define the storage and entrypoints
+```bash
+taq create contract proxy.jsligo
+```
+
+Let's define the storage and entrypoints on it
 
 ```typescript
 type storage = {
@@ -550,7 +624,7 @@ type parameter =
 type _return = [list<operation>,storage];
 ```
 
-- storage : 
+- storage :
   - holds a /or several admin
   - the interface schema map for all underlying entrypoints
 - parameter :
@@ -577,8 +651,8 @@ type entrypointOperation = {
 };
 
 type changeVersion = {
-  old : address,
-  new : address
+  oldAddr : address,
+  newAddr : address
 };
 ```
 
@@ -656,11 +730,11 @@ const upgrade = ([param ,s] : [[list<entrypointOperation> , option<changeVersion
   return match(changeVersionOpt,{
    None : ()      => [(list([]) as list<operation>), {...s, entrypoints : new_entrypoints}],
    Some : (change : changeVersion) => {
-                let op_change : operation = match( (Tezos.get_contract_opt(change.old) as option<contract<callContract>>), {
+                let op_change : operation = match( (Tezos.get_contract_opt(change.oldAddr) as option<contract<callContract>>), {
                          None : ()  => failwith("No contract found at this address"),
                          Some : (contract:contract) => {
                                         let amt = Tezos.get_amount();  
-                                        let payload : address = change.new;
+                                        let payload : address = change.newAddr;
                                         return Tezos.transaction({entrypointName : "changeVersion", payload : Bytes.pack(payload)}, amt, contract);
                                         }
                         });
@@ -674,7 +748,7 @@ const upgrade = ([param ,s] : [[list<entrypointOperation> , option<changeVersion
 - It loops over the new interface schema to update and do so.
 - If a changeVersion is required, it calls the old contract to take the new version configuration (and desactivate itself so)
 
-Last change is to expose any view from underlying contract (as we have one)
+Last change is to expose any view from underlying contract (as we have one), declare it at the end of the file
 
 ```typescript
 // @view
@@ -692,119 +766,216 @@ const getView = ([viewName, store] : [string, storage]) : bytes => {
 Compile
 
 ```bash
-ligo compile contract ./smartcontract/proxy.jsligo --output-file proxy.tz --protocol jakarta
+taq compile proxy.jsligo
 ```
 
 #### We have all ready for deployment :rocket:
 
-Redeploy to testnet, replacing `<ACCOUNT_KEY_NAME>` with your own user alias + `governance:XXXX` by your own user address ⚠️ . 
-First, deploy the proxy : 
+First, deploy the proxy, create the initial storage for it
 
 ```bash
-ligo compile storage ./smartcontract/proxy.jsligo '{governance : "tz1VApBuWHuaTfDHtKzU3NBtWFYsxJvvWhYk" as address, entrypoints : Big_map.empty as big_map<string,entrypointType>}' --output-file proxyStorage.tz  --protocol jakarta
+taq create contract proxy.storages.jsligo
+```
 
-tezos-client originate contract proxy transferring 0 from <ACCOUNT_KEY_NAME> running proxy.tz --init "$(cat proxyStorage.tz)" --burn-cap 1 --force
+Edit to 
+
+```typescript
+#include "proxy.jsligo"
+const default_storage = {
+  governance : "tz1Qjvu8xaRgTjQmHBBDHaM1HGomCTYBgLZJ" as address, //admins
+  entrypoints : Big_map.empty as big_map<string,entrypointType> //interface schema map
+};
+```
+
+Then compile and deploy it
+
+```bash
+taq compile proxy.jsligo 
+taq deploy proxy.tz -e testing
 ```
 
 ```logs
-New contract KT1VYjTExoE5EHJkT6mBWWoW7BcsHqnJBdgp originated.
+┌──────────┬──────────────────────────────────────┬───────┬─────────────┐
+│ Contract │ Address                              │ Alias │ Destination │
+├──────────┼──────────────────────────────────────┼───────┼─────────────┤
+│ proxy.tz │ KT1XMHGhgAKWXrbzKAbJvJwpCCbskiT9QwfP │ proxy │ ghostnet    │
+└──────────┴──────────────────────────────────────┴───────┴─────────────┘
 ```
 
 Keep this proxy address, as you will need to report it below on `tzip18.proxy` field :warning:
 
-Now you can deploy a smartcontract V1. ( :warning: Change with your **proxy address** on below command line) 
+Now you can deploy a smartcontract V1. ( :warning: Change with your **proxy address** on file `pokeGame.storages.jsligo` like mine )
+
+```typescript
+#include "pokeGame.jsligo"
+const default_storage = {
+    pokeTraces : Map.empty as map<address, pokeMessage>,
+    feedback : "kiss",
+    ticketOwnership : Map.empty as map<address,ticket<string>>,  //ticket of claims
+    tzip18 : {
+                proxy : "KT1XMHGhgAKWXrbzKAbJvJwpCCbskiT9QwfP" as address,
+                version : 1 as nat,
+                contractPrevious : None() as option<address>,
+                contractNext : None() as option<address> 
+             }
+};
+```
 
 ```bash
-ligo compile storage ./smartcontract/pokeGame.jsligo '{pokeTraces : Map.empty as map<address, pokeMessage> , feedback : "kiss" , ticketOwnership : Map.empty as map<address,ticket<string>>, tzip18: {proxy: ("KT1VYjTExoE5EHJkT6mBWWoW7BcsHqnJBdgp" as address), version : (1 as nat), contractPrevious : None() as option<address>, contractNext : None() as option<address>}}' --output-file pokeGameStorage.tz  --protocol jakarta
-
-tezos-client originate contract mycontract transferring 0 from <ACCOUNT_KEY_NAME> running pokeGame.tz --init "$(cat pokeGameStorage.tz)" --burn-cap 1 --force
+taq compile pokeGame.jsligo
+taq deploy pokeGame.tz -e testing
 ```
 
 ```logs
-New contract KT1GJZWSJ6YYKGJmP9CByspm98u5u6N1Gqnf originated.
+┌─────────────┬──────────────────────────────────────┬──────────┬─────────────┐
+│ Contract    │ Address                              │ Alias    │ Destination │
+├─────────────┼──────────────────────────────────────┼──────────┼─────────────┤
+│ pokeGame.tz │ KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7 │ pokeGame │ ghostnet    │
+└─────────────┴──────────────────────────────────────┴──────────┴─────────────┘
 ```
 
-Let's tell the proxy that there is a first contract deployed with some interface. (:warning: Change with your smart contract address on the command line )
+Let's tell the proxy that there is a first contract deployed with some interface.
+Create a parameter file    (:warning: Change with your smart contract address on each command line with `addr` below :warning:)
 
 ```bash
-ligo compile parameter ./smartcontract/proxy.jsligo 'Upgrade([list([ {name : "Poke", isRemoved  : false,  entrypoint : Some({method : "Poke", addr : "KT1GJZWSJ6YYKGJmP9CByspm98u5u6N1Gqnf" as address })} , {name : "PokeAndGetFeedback", isRemoved  : false,  entrypoint : Some({method : "PokeAndGetFeedback", addr : "KT1GJZWSJ6YYKGJmP9CByspm98u5u6N1Gqnf" as address })} , {name : "Init", isRemoved  : false,  entrypoint : Some({method : "Init", addr : "KT1GJZWSJ6YYKGJmP9CByspm98u5u6N1Gqnf" as address })} , {name : "changeVersion", isRemoved  : false,  entrypoint : Some({method : "changeVersion", addr : "KT1GJZWSJ6YYKGJmP9CByspm98u5u6N1Gqnf" as address })}, {name : "feedback", isRemoved  : false,  entrypoint : Some({method : "feedback", addr : "KT1GJZWSJ6YYKGJmP9CByspm98u5u6N1Gqnf" as address })} ]) as list<entrypointOperation>,None() as option<changeVersion>])' --output-file proxyParameter.tz  --protocol jakarta
- 
-tezos-client transfer 0 from <ACCOUNT_KEY_NAME> to proxy --arg "$(cat proxyParameter.tz)" --burn-cap 1
+taq create contract proxy.parameters.jsligo
+```
+
+Edit it
+
+```typescript
+#include "proxy.jsligo"
+const initProxyWithV1 = Upgrade(
+  [
+    list([
+    {
+      name : "Poke",
+      isRemoved  : false,
+      entrypoint : Some({method : "Poke",
+                        addr : "KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7" as address })},
+    {
+      name : "PokeAndGetFeedback",
+      isRemoved  : false,
+      entrypoint : Some({method : "PokeAndGetFeedback", addr : "KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7" as address })},
+    {
+      name : "Init",
+      isRemoved  : false,
+      entrypoint : Some({method : "Init", addr : "KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7" as address })},
+    {
+      name : "changeVersion",
+      isRemoved  : false,
+      entrypoint : Some({method : "changeVersion", addr : "KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7" as address })},
+    {
+      name : "feedback",
+      isRemoved  : false,
+      entrypoint : Some({method : "feedback", addr : "KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7" as address})}
+    ]) as list<entrypointOperation>,
+    None() as option<changeVersion>
+  ]);
+```
+
+Compile & Call it
+
+```bash
+taq compile proxy.jsligo 
+taq call proxy --param proxy.parameter.initProxyWithV1.tz -e testing
+```
+
+output :
+
+```logs
+┌────────────────┬──────────────────────────────────────┬──────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────────┬────────────┬─────────────────────────────────────┐
+│ Contract Alias │ Contract Address                     │ Tez Transfer │ Parameter                                                                                              │ Entrypoint │ Destination                         │
+├────────────────┼──────────────────────────────────────┼──────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────────────────────────┤
+│ proxy          │ KT1XMHGhgAKWXrbzKAbJvJwpCCbskiT9QwfP │ 0            │ (Right                                                                                                 │ default    │ https://ghostnet.tezos.marigold.dev │
+│                │                                      │              │    (Pair { Pair (Pair (Some (Pair "KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7" "Poke")) False) "Poke" ;      │            │                                     │
+│                │                                      │              │            Pair (Pair (Some (Pair "KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7" "PokeAndGetFeedback")) False) │            │                                     │
+│                │                                      │              │                 "PokeAndGetFeedback" ;                                                                 │            │                                     │
+│                │                                      │              │            Pair (Pair (Some (Pair "KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7" "Init")) False) "Init" ;      │            │                                     │
+│                │                                      │              │            Pair (Pair (Some (Pair "KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7" "changeVersion")) False)      │            │                                     │
+│                │                                      │              │                 "changeVersion" ;                                                                      │            │                                     │
+│                │                                      │              │            Pair (Pair (Some (Pair "KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7" "feedback")) False)           │            │                                     │
+│                │                                      │              │                 "feedback" }                                                                           │            │                                     │
+│                │                                      │              │          None))                                                                                        │            │                                     │
+│                │                                      │              │                                                                                                        │            │                                     │
+└────────────────┴──────────────────────────────────────┴──────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────────┴────────────┴─────────────────────────────────────┘
 ```
 
 #### Lets' go to the frontend
 
-Update a bit some dependencies (i.e old version of taquito cannot fetch tickets on MichelsonMap for example)
+Go on frontend side, recompile all and generate typescript classes
 
 ```bash
-cd dapp
-yarn add -D @airgap/beacon-types@^3.1.4
-yarn upgrade @airgap/beacon-sdk@^3.1.4 @taquito/beacon-wallet@^14.0.0 @taquito/taquito@^14.0.0
+taq compile pokeGame.jsligo 
+taq compile proxy.jsligo 
+taq generate types ./app/src
 ```
 
-Edit ./dapp/App.tsx and change the contract address, display, etc ...
+> Note : don't forget to export Storage type like in previous training
+
+Change the script to extract the proxy address instead of the contract one, edit `package.json` and replace the line of script by
+
+```json
+    "start": "jq -r -f filter.jq ../.taq/testing-state.json > .env && react-app-rewired start",    
+```
+
+where you created a new file `filter.jq` with content `"REACT_APP_CONTRACT_ADDRESS=" + last(.tasks[] | select(.task == "deploy" and .output[0].contract == "proxy.tz").output[0].address)`
+
+Edit ./app/App.tsx and change the contract address, display, etc ...
 
 ```typescript
 import { Contract, ContractsService } from '@dipdup/tzkt-api';
-import { PackDataResponse } from "@taquito/rpc";
-import { MichelCodecPacker, MichelsonMap, TezosToolkit, WalletContract } from '@taquito/taquito';
+import { MichelCodecPacker, TezosToolkit } from '@taquito/taquito';
+import { BigNumber } from "bignumber.js";
 import { useState } from 'react';
 import './App.css';
 import ConnectButton from './ConnectWallet';
-import DisconnectButton from './DisconnectWallet';
+import DisconnectButton from './DisconnectWallet'; 
+import { ProxyWalletType } from './proxy.types';
+import { Storage  as ProxyStorage} from './proxy.types';
+import { PokeGameWalletType, Storage  as ContractStorage} from './pokeGame.types';
+import { address, BigMap, bytes, nat } from './type-aliases';
+import { PackDataResponse } from "@taquito/rpc";
 
-type entrypointType = {
-  method  : string,
-  addr    : string
-};
-
-type storage = {
-  governance : string, //admins
-  entrypoints : MichelsonMap<string,entrypointType> //interface schema map
-};
-
-type pokeMessage = {
-  receiver : string,
-  feedback : string
-};
-
-type callContract = { 
-  entrypointName : string, 
-  payload         : string //hexadecimal
-};
 
 function App() {
   
-  const [Tezos, setTezos] = useState<TezosToolkit>(new TezosToolkit("https://jakartanet.tezos.marigold.dev"));
+  const [Tezos, setTezos] = useState<TezosToolkit>(new TezosToolkit("https://ghostnet.tezos.marigold.dev"));
   const [wallet, setWallet] = useState<any>(null);
   const [userAddress, setUserAddress] = useState<string>("");
   const [userBalance, setUserBalance] = useState<number>(0);
 
   const [contractToPoke, setContractToPoke] = useState<string>("");
   
-  Tezos.setPackerProvider(new MichelCodecPacker());
-
-
   //tzkt
-  const contractsService = new ContractsService( {baseUrl: "https://api.jakartanet.tzkt.io" , version : "", withCredentials : false});
-  const [contracts, setContracts] = useState<Array<Contract>>([]);
+  const contractsService = new ContractsService( {baseUrl: "https://api.ghostnet.tzkt.io" , version : "", withCredentials : false});
+  const [contracts, setContracts] = useState<Array<Contract>>([]);  
+  const [contractStorages, setContractStorages] = useState<Map<string,ProxyStorage&ContractStorage>>(new Map());  
+  
   
   const fetchContracts = () => {
     (async () => {
-      let contracts = (await contractsService.getSimilar({address:"KT1VYjTExoE5EHJkT6mBWWoW7BcsHqnJBdgp" , includeStorage:true, sort:{desc:"id"}}));
-      contracts = await Promise.all(contracts.map(async (c:Contract) => await extractContractStorage(c)));
-      console.log("contracts",contracts);
-      
-      setContracts(contracts);
+      const tzktcontracts : Array<Contract>=  await contractsService.getSimilar({address: process.env["REACT_APP_CONTRACT_ADDRESS"]!, includeStorage:true, sort:{desc:"id"}});
+      setContracts(tzktcontracts);
+      const taquitoContracts : Array<ProxyWalletType> = await Promise.all(tzktcontracts.map(async (tzktcontract) => await Tezos.wallet.at(tzktcontract.address!) as ProxyWalletType));
+      const map = new Map<string,ProxyStorage&ContractStorage>();   
+      for(const c of taquitoContracts){
+        const s : ProxyStorage =  await c.storage();
+        let firstEp :  {addr: address;method: string;} | undefined  = await s.entrypoints.get("Poke"); 
+        let underlyingContract : PokeGameWalletType = await Tezos.wallet.at(""+firstEp!.addr);
+        map.set(c.address,{...s , ...await underlyingContract.storage()});
+      }
+      setContractStorages(map);      
     })();
   }
   
   //poke
   const poke = async (e :  React.MouseEvent<HTMLButtonElement>, contract : Contract) => {  
     e.preventDefault(); 
-    let c : WalletContract = await Tezos.wallet.at(""+contract.address);
+    let c : ProxyWalletType = await Tezos.wallet.at(""+contract.address);
     try {
       console.log("contractToPoke",contractToPoke);
+
       const p = new MichelCodecPacker(); 
       let contractToPokeBytes: PackDataResponse = await p.packData({
         data: { string: contractToPoke },
@@ -812,7 +983,7 @@ function App() {
       });
       console.log("packed",contractToPokeBytes.packed);
 
-      const op = await c.methods.call("PokeAndGetFeedback",contractToPokeBytes.packed).send();
+      const op = await c.methods.call("PokeAndGetFeedback",contractToPokeBytes.packed as bytes).send();
       await op.confirmation();
       alert("Tx done");
     } catch (error : any) {
@@ -824,17 +995,15 @@ function App() {
     //mint
     const mint = async (e :  React.MouseEvent<HTMLButtonElement>, contract : Contract) => {  
       e.preventDefault(); 
-      let c : WalletContract = await Tezos.wallet.at(""+contract.address);
+      let c : ProxyWalletType = await Tezos.wallet.at(""+contract.address);
       try {
         console.log("contractToPoke",contractToPoke);
-        
         const p = new MichelCodecPacker(); 
         let initBytes: PackDataResponse = await p.packData({
           data: { prim : "Pair" , args : [{string: userAddress},{int:"1"}]  },
           type: { prim : "Pair" , args : [{prim: "address"},{prim : "nat"}]  }
         });
-        const op = await c.methods.call("Init",initBytes.packed).send();
-
+        const op = await c.methods.call("Init",initBytes.packed as bytes).send();
         await op.confirmation();
         alert("Tx done");
       } catch (error : any) {
@@ -842,18 +1011,6 @@ function App() {
         console.table(`Error: ${JSON.stringify(error, null, 2)}`);
       }
     };
-  
-    //alter proxy to add underlying storage
-  const extractContractStorage = async (proxy : Contract) : Promise<Contract> => {
-    //get contract address from first entrypoint
-    let taquitocontract = await Tezos.wallet.at(""+proxy.address);
-    const taquitoStorage : storage = await taquitocontract.storage() as storage;    
-    let firstEp : entrypointType | undefined  = await taquitoStorage.entrypoints.get("Poke"); 
-    let underlyingContract : WalletContract = await Tezos.wallet.at(""+firstEp!.addr);
-    proxy.storage.underlyingContract = await underlyingContract.storage();
-    //console.log("underlyingContract",proxy.storage.underlyingContract);
-    return new Promise((resolve,reject)=>resolve(proxy));
-  }
   
   return (
     <div className="App">
@@ -886,10 +1043,7 @@ function App() {
     <table><thead><tr><th>address</th><th>trace "contract - feedback - user"</th><th>action</th></tr></thead><tbody>
     {contracts.map((contract) => <tr>
       <td style={{borderStyle: "dotted"}}>{contract.address}</td>
-      <td style={{borderStyle: "dotted"}}>{(contract.storage !== null && contract.storage.underlyingContract.pokeTraces !== null 
-        && contract.storage.underlyingContract.pokeTraces.size > 0)?
-        Array.from((contract.storage.underlyingContract.pokeTraces as MichelsonMap<string,pokeMessage>).keys()).map((k : string)=>contract.storage.underlyingContract.pokeTraces.get(k).receiver+" "+contract.storage.underlyingContract.pokeTraces.get(k).feedback+" "+k+",")
-        :""}</td>
+      <td style={{borderStyle: "dotted"}}>{(contractStorages.get(contract.address!) !== undefined && (contractStorages.get(contract.address!)!.pokeTraces))?Array.from(contractStorages.get(contract.address!)!.pokeTraces.entries()).map( (e)=>e[1].receiver+" "+e[1].feedback+" "+e[0]+","):""}</td>
       <td style={{borderStyle: "dotted"}}><input type="text" onChange={e=>{console.log("e",e.currentTarget.value);setContractToPoke(e.currentTarget.value)}} placeholder='enter contract address here' />
                                           <button onClick={(e) =>poke(e,contract)}>Poke</button>
                                           <button onClick={(e)=>mint(e,contract)}>Mint 1 ticket</button></td>
@@ -907,12 +1061,13 @@ function App() {
 ```
 
 - contract address now is pointing to your **proxy** address
-- we have added a function **extractContractStorage**. It is appending the storage of the underlying contract to the proxy storage, so we can display it on the table like before :)
+- we are merging proxy and contract storage with `ProxyStorage&ContractStorage` type definition. contract fecth is appending the storage of the underlying contract to the proxy storage, so we can display it on the table like before :)
 - we have altered the call to exposed entrypoint. Because all is generic now on the proxy, we always do `await c.methods.call("my_entrypoint_name",my_packed_payload_bytes).send()`
 
-Lets' deploy the frontend locally
+Lets' run the frontend locally
 
 ```bash
+cd app 
 yarn run start
 ```
 
@@ -932,25 +1087,76 @@ Let's deploy a new contract V2 and test it again.
 > Note : Remember that we cannot change the storage.feedback field on any deployed smartcontract bacause we never exposed a method to update it. 
 > Let's change this value for the new contract instance, and call it `hello`
 
-```bash
-ligo compile storage ./smartcontract/pokeGame.jsligo '{pokeTraces : Map.empty as map<address, pokeMessage> , feedback : "hello" , ticketOwnership : Map.empty as map<address,ticket<string>>, tzip18: {proxy: ("KT1VYjTExoE5EHJkT6mBWWoW7BcsHqnJBdgp" as address), version : (2 as nat), contractPrevious : Some("KT1GJZWSJ6YYKGJmP9CByspm98u5u6N1Gqnf" as address) as option<address>, contractNext : None() as option<address>}}' --output-file pokeGameStorage2.tz  --protocol jakarta
+Edit `pokeGame.storages.jsligo` and add a new variable on it 
 
-tezos-client originate contract mycontract2 transferring 0 from <ACCOUNT_KEY_NAME> running pokeGame.tz --init "$(cat pokeGameStorage2.tz)" --burn-cap 1 --force
+```typescript
+const storageV2 = {
+    pokeTraces : Map.empty as map<address, pokeMessage> , 
+    feedback : "hello" , 
+    ticketOwnership : Map.empty as map<address,ticket<string>>, 
+    tzip18: {
+        proxy: "KT1XMHGhgAKWXrbzKAbJvJwpCCbskiT9QwfP" as address, 
+        version : 2 as nat, 
+        contractPrevious : Some("KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7" as address) as option<address>, 
+        contractNext : None() as option<address>
+        }
+};
+```
+
+```bash
+taq compile pokeGame.jsligo
+taq deploy pokeGame.tz -e testing --storage pokeGame.storage.storageV2.tz
 ```
 
 ```logs
-New contract KT1GfEikKr4MMn9eAAY1BQ2UTbsNxhetbBMT originated.
+┌─────────────┬──────────────────────────────────────┬──────────┬─────────────┐
+│ Contract    │ Address                              │ Alias    │ Destination │
+├─────────────┼──────────────────────────────────────┼──────────┼─────────────┤
+│ pokeGame.tz │ KT1AxZbF6hoXHGWZjcAn4MzLDRsVYgZGDmCL │ pokeGame │ ghostnet    │
+└─────────────┴──────────────────────────────────────┴──────────┴─────────────┘
 ```
 
-Tell our proxy than we have new entrypoints to the V2 and remove the ones from V1. Change below the smart contract address `KT1GfEikKr4MMn9eAAY1BQ2UTbsNxhetbBMT` with yours
+Tell our proxy than we have new entrypoints to the V2 and remove the ones from V1.
+Add a new parameter variable on `proxy.parameters.jsligo`
+
+```typescript
+const initProxyWithV2 = Upgrade(
+  [
+    list([
+    {
+      name : "Poke",
+      isRemoved  : false,
+      entrypoint : Some({method : "Poke",
+                        addr : "KT1AxZbF6hoXHGWZjcAn4MzLDRsVYgZGDmCL" as address })},
+    {
+      name : "PokeAndGetFeedback",
+      isRemoved  : false,
+      entrypoint : Some({method : "PokeAndGetFeedback", addr : "KT1AxZbF6hoXHGWZjcAn4MzLDRsVYgZGDmCL" as address })},
+    {
+      name : "Init",
+      isRemoved  : false,
+      entrypoint : Some({method : "Init", addr : "KT1AxZbF6hoXHGWZjcAn4MzLDRsVYgZGDmCL" as address })},
+    {
+      name : "changeVersion",
+      isRemoved  : false,
+      entrypoint : Some({method : "changeVersion", addr : "KT1AxZbF6hoXHGWZjcAn4MzLDRsVYgZGDmCL" as address })},
+    {
+      name : "feedback",
+      isRemoved  : false,
+      entrypoint : Some({method : "feedback", addr : "KT1AxZbF6hoXHGWZjcAn4MzLDRsVYgZGDmCL" as address})}
+    ]) as list<entrypointOperation>,
+    None() as option<changeVersion>
+  ]);
+```
+ 
+Call the proxy to do the changes 
 
 ```bash
-ligo compile parameter ./smartcontract/proxy.jsligo 'Upgrade([list([ {name : "Poke", isRemoved  : false,  entrypoint : Some({method : "Poke", addr : "KT1GfEikKr4MMn9eAAY1BQ2UTbsNxhetbBMT" as address })} , {name : "PokeAndGetFeedback", isRemoved  : false,  entrypoint : Some({method : "PokeAndGetFeedback", addr : "KT1GfEikKr4MMn9eAAY1BQ2UTbsNxhetbBMT" as address })} , {name : "Init", isRemoved  : false,  entrypoint : Some({method : "Init", addr : "KT1GfEikKr4MMn9eAAY1BQ2UTbsNxhetbBMT" as address })} , {name : "changeVersion", isRemoved  : false,  entrypoint : Some({method : "changeVersion", addr : "KT1GfEikKr4MMn9eAAY1BQ2UTbsNxhetbBMT" as address })}, {name : "feedback", isRemoved  : false,  entrypoint : Some({method : "feedback", addr : "KT1GfEikKr4MMn9eAAY1BQ2UTbsNxhetbBMT" as address })} ]) as list<entrypointOperation>,None() as option<changeVersion>])' --output-file proxyParameter2.tz  --protocol jakarta
- 
-tezos-client transfer 0 from <ACCOUNT_KEY_NAME> to proxy --arg "$(cat proxyParameter2.tz)" --burn-cap 1
+taq compile proxy.jsligo 
+taq call proxy --param proxy.parameter.initProxyWithV2.tz -e testing
 ```
 
-Test the flow again
+Back to the web app, test the flow again :
 1. Refresh the contract list
 1. Mint 1 ticket
 1. Wait for confirmation popup
@@ -958,19 +1164,30 @@ Test the flow again
 1. Wait for confirmation popup
 1. Refresh the contract list
 
-Now, your proxy is calling the contract V2 and should return `hello`on the traces and no more `kiss`
+Now, your proxy is calling the contract V2 and should return `hello` on the traces and no more `kiss`
 
 #### Last part is to set the old smart contract as obsolete
 
 > Note : we could have do it in one row in a single transaction as all operations are done in sequence on the operation array
 
-```bash
-ligo compile parameter ./smartcontract/proxy.jsligo 'Upgrade([list([]) as list<entrypointOperation>,Some({old : ("KT1GJZWSJ6YYKGJmP9CByspm98u5u6N1Gqnf" as address), new : ("KT1GfEikKr4MMn9eAAY1BQ2UTbsNxhetbBMT" as address) }) as option<changeVersion>])' --output-file proxyParameter3.tz  --protocol jakarta
- 
-tezos-client transfer 0 from <ACCOUNT_KEY_NAME> to proxy --arg "$(cat proxyParameter3.tz)" --burn-cap 1
+Add a new parameter on `proxy.parameters.jsligo` to force change of version on old contract (:warning: replace below with your own addresses for V1 ad V2)
+
+```typescript
+const changeVersionV1ToV2 = Upgrade([
+    list([]) as list<entrypointOperation>,
+    Some({
+      oldAddr : ("KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7" as address), 
+      newAddr : ("KT1AxZbF6hoXHGWZjcAn4MzLDRsVYgZGDmCL" as address) }) as option<changeVersion>
+]);
 ```
 
-Check on an indexer that storage.tzip18.contractNext is pointing to the next version address : [https://jakartanet.tzkt.io/KT1GJZWSJ6YYKGJmP9CByspm98u5u6N1Gqnf/storage/](https://jakartanet.tzkt.io/KT1GJZWSJ6YYKGJmP9CByspm98u5u6N1Gqnf/storage/)
+
+```bash
+taq compile proxy.jsligo 
+taq call proxy --param proxy.parameter.changeVersionV1ToV2.tz -e testing
+```
+
+Check on an indexer that the V1 storage.tzip18.contractNext is pointing to the next version address V2 : [https://ghostnet.tzkt.io/KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7/storage/](https://ghostnet.tzkt.io/KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7/storage/)
 
 :tada: This ends the proxy pattern implementation. Your old contract is no more "runnable" and your proxy is pointing to the last version
 

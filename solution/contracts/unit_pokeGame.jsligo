@@ -12,22 +12,14 @@ const _ = Test.log(Test.get_balance(sender1));
 const _ = Test.set_baker(faucet);
 const _ = Test.set_source(faucet);
 
-const lambda1 = (oracleAddress : address) : string => {
-    return match( Tezos.call_view("feedback", unit, oracleAddress) as option<string> , {
-        Some : (feedback : string) => feedback, 
-        None : () => failwith("Cannot find view feedback on given oracle address")
-    });
-};
-
 //functions
-export const _testPoke = ([main , s, ticketCount] : [main_fn , address, nat]) : bool => {
+export const _testPoke = (main : main_fn, s : address, ticketCount : nat, expectedResult : bool) : unit => {
 
     //contract origination
     const [taddr, _, _] = Test.originate(main, {
         pokeTraces : Map.empty as map<address, PokeGame.pokeMessage> , 
         feedback : "kiss" , 
-        ticketOwnership : Map.empty as map<address,ticket<string>>,
-        feedbackFunction : lambda1},
+        ticketOwnership : Map.empty as map<address,ticket<string>>},
         0 as tez);
     const contr = Test.to_contract(taddr);
     const contrAddress = Tezos.address(contr);
@@ -45,10 +37,13 @@ export const _testPoke = ([main , s, ticketCount] : [main_fn , address, nat]) : 
     Test.log(status);
 
     return match(status,{
-        Fail : (_tee : test_exec_error) => false,
+        Fail : (tee : test_exec_error) => match(tee,{
+                                Other: (msg : string) => assert_with_error(expectedResult==false,msg), 
+                                Balance_too_low : (_record : [ address ,  tez , tez ]) => assert_with_error(expectedResult==false,"ERROR Balance_too_low"), 
+                                Rejected: (s:[michelson_program , address])=>assert_with_error(expectedResult==false,Test.to_string(s[0]))}),
         Success : (_n : nat) => match(Map.find_opt (s, (Test.get_storage(taddr) as PokeGame.storage).pokeTraces), {
-                                Some: (pokeMessage: PokeGame.pokeMessage) => { assert_with_error(pokeMessage.feedback == "","feedback "+pokeMessage.feedback+" is not equal to expected "+"(empty)"); assert_with_error(pokeMessage.receiver == contrAddress,"receiver is not equal"); return true; } ,
-                                None: () => false
+                                Some: (pokeMessage: PokeGame.pokeMessage) => { assert_with_error(pokeMessage.feedback == "","feedback "+pokeMessage.feedback+" is not equal to expected "+"(empty)"); assert_with_error(pokeMessage.receiver == contrAddress,"receiver is not equal");} ,
+                                None: () => assert_with_error(expectedResult==false,"don't find traces")
        })
     });
       
@@ -58,7 +53,7 @@ export const _testPoke = ([main , s, ticketCount] : [main_fn , address, nat]) : 
   //********** TESTS *************/
 
   const _ = Test.log("*** Run test to pass ***"); 
-  const testSender1Poke = _testPoke([PokeGame.main,sender1, 1 as nat]);
+  const testSender1Poke = _testPoke([PokeGame.main,sender1, 1 as nat,true]);
 
   const _ = Test.log("*** Run test to fail ***"); 
-  const testSender1PokeWithNoTicketsToFail = ! _testPoke([PokeGame.main,sender1, 0 as nat]) ;
+  const testSender1PokeWithNoTicketsToFail = _testPoke([PokeGame.main,sender1, 0 as nat,false]) ;
