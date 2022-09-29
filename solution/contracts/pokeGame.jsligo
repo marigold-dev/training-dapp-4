@@ -12,20 +12,12 @@ export type storage = {
     tzip18 : TZIP18.tzip18
 };
 
-export type return_ = [list<operation>, storage];
-
-/*
-export type parameter =
-| ["Poke"]
-| ["PokeAndGetFeedback", address]
-| ["Init", address, nat]
-;
-*/
-
 type parameter = {
   entrypointName  : string,
   payload : bytes
 };
+
+export type return_ = [list<operation>, storage];
 
 const poke = ([pokeTraces  , feedback  , ticketOwnership,tzip18] : [map<address, pokeMessage>  , string  , map<address,ticket<string>>,TZIP18.tzip18]) : return_ => {
     
@@ -88,21 +80,6 @@ const init = ([a, ticketCount, pokeTraces  , feedback  , ticketOwnership, tzip18
     }
 };
 
-/* Main access point that dispatches to the entrypoints according to
-the smart contract parameter. */
-/*
-export const main = ([action, store] : [parameter, storage]) : return_ => {
-    //destructure the storage to avoid DUP
-    let {pokeTraces  , feedback  , ticketOwnership } = store;
-    return match (action, {
-        Poke: () => poke([pokeTraces  , feedback  , ticketOwnership]) ,
-        PokeAndGetFeedback: (other : address) => pokeAndGetFeedback([other,pokeTraces  , feedback  , ticketOwnership]),
-        Init: (initParam : [address, nat]) => init([initParam[0], initParam[1], pokeTraces  , feedback  , ticketOwnership])
-      } 
-    )
-};
-*/
-
 /**
 * Function called by a parent contract or administrator to set the current version on an old contract
 **/
@@ -155,8 +132,6 @@ export const main = ([action, store] : [parameter, storage]) : return_ => {
         }
     
 };
-
-
 
 // @view
 const getView = ([viewName, store] : [string, storage]) : bytes => { 
