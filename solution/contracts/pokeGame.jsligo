@@ -1,4 +1,4 @@
-import { TZIP18 } from "./tzip18.jsligo" 
+#import "./tzip18.jsligo" "TZIP18"
 
 export type pokeMessage = {
     receiver : address,
