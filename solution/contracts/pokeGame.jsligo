@@ -1,4 +1,4 @@
-#import "./tzip18.jsligo" "TZIP18"
+import { TZIP18 } from "./tzip18.jsligo" 
 
 export type pokeMessage = {
     receiver : address,
@@ -12,8 +12,16 @@ export type storage = {
     tzip18 : TZIP18.tzip18
 };
 
+
+export type entrypointParameter =
+| ["Poke"]
+| ["PokeAndGetFeedback"] //, address]
+| ["Init"] //, address, nat]
+| ["changeVersion"] //,address]
+;
+
 type parameter = {
-  entrypointName  : string,
+  entrypointName : entrypointParameter,
   payload : bytes
 };
 
@@ -26,7 +34,7 @@ const poke = ([pokeTraces  , feedback  , ticketOwnership,tzip18] : [map<address,
     
     return match(t, {
         None : () => failwith("User does not have tickets => not allowed"),
-        Some : (_t : ticket<string>) => [  list([]) as list<operation>,{ //let t burn
+        Some : (_t) => [  list([]) as list<operation>,{ //let t burn
         feedback,
         pokeTraces : Map.add(Tezos.get_source(), {receiver : Tezos.get_self_address(), feedback : ""},pokeTraces),
         ticketOwnership : tom,
@@ -46,10 +54,10 @@ const pokeAndGetFeedback = ([oracleAddress,pokeTraces  , feedback  , ticketOwner
 
   return match(t, {
         None : () => failwith("User does not have tickets => not allowed"),
-        Some : (_t : ticket<string>) =>
+        Some : (_t) =>
 
   match( feedbackOpt , {
-    Some : (f : bytes) => {
+    Some : (f) => {
         let feedbackMessage = {receiver : oracleAddress ,feedback: Option.unopt(Bytes.unpack(f) as option<string>)};
         return [  list([]) as list<operation>, { 
           feedback,
@@ -63,21 +71,18 @@ const pokeAndGetFeedback = ([oracleAddress,pokeTraces  , feedback  , ticketOwner
 };
 
 const init = ([a, ticketCount, pokeTraces  , feedback  , ticketOwnership, tzip18] : [address, nat, map<address, pokeMessage>  , string  , map<address,ticket<string>>,TZIP18.tzip18]) : return_ => {
-    if(ticketCount == (0 as nat)){
-        return [  list([]) as list<operation>,{
+    return (ticketCount == (0 as nat)) ? [  list([]) as list<operation>,{
             feedback,
             pokeTraces,
             ticketOwnership,
             tzip18
-            }];
-    } else {
-        return [  list([]) as list<operation>,{
+            }] 
+            : [  list([]) as list<operation>,{
             feedback,
             pokeTraces,
             ticketOwnership : Map.add(a,Tezos.create_ticket("can_poke", ticketCount),ticketOwnership),
             tzip18
             }];
-    }
 };
 
 /**
@@ -94,43 +99,48 @@ export const main = ([action, store] : [parameter, storage]) : return_ => {
 
     const canBeCalled : bool = match(tzip18.contractNext , { 
      None : () => false, // I am the last version, but I cannot be called directly (or is my proxy, see later)
-     Some : (contract : address) => {if(Tezos.get_sender() == contract){return true;} // I am not the last but a parent contract is calling me
+     Some : (contract) => {if(Tezos.get_sender() == contract){return true;} // I am not the last but a parent contract is calling me
                                      else {return false;}} // I am not the last version and a not-parent is trying to call me
     });
 
     if(Tezos.get_sender() != tzip18.proxy && !canBeCalled) return failwith("Only the proxy or contractNext can call this contract");
     
-    
-    if(action.entrypointName == "Poke") { 
-            return poke([pokeTraces  , feedback  , ticketOwnership, tzip18]);
-        }
-        else {
-            if(action.entrypointName == "PokeAndGetFeedback") {
+
+    return match(action.entrypointName,{ 
+        Poke : () => poke([pokeTraces  , feedback  , ticketOwnership, tzip18]),
+        PokeAndGetFeedback : () =>  match((Bytes.unpack(action.payload) as option<address>), {
+                    None : () => failwith("Cannot find the address parameter for PokeAndGetFeedback"),
+                    Some : (other) => pokeAndGetFeedback([other, pokeTraces  , feedback  , ticketOwnership, tzip18])
+                }),
+        Init : () => match((Bytes.unpack(action.payload) as option<[address, nat]>), {
+                        None : () => failwith("Cannot find the address parameter for changeVersion"),
+                        Some : (initParam) => init([initParam[0], initParam[1], pokeTraces  , feedback  , ticketOwnership, tzip18])
+                    }),
+        changeVersion : () => match((Bytes.unpack(action.payload) as option<address>), {
+                        None : () => failwith("Cannot find the address parameter for changeVersion"),
+                        Some : (other) => changeVersion([other, pokeTraces  , feedback  , ticketOwnership, tzip18])
+                    })        
+    });
+    /*FIXME
+    switch(action.entrypointName) {
+        case Poke : return poke([pokeTraces  , feedback  , ticketOwnership, tzip18]);break;
+        case PokeAndGetFeedback : 
                 return match((Bytes.unpack(action.payload) as option<address>), {
                     None : () => failwith("Cannot find the address parameter for PokeAndGetFeedback"),
                     Some : (other:address) => pokeAndGetFeedback([other, pokeTraces  , feedback  , ticketOwnership, tzip18])
-                });
-            }
-            else {
-                if(action.entrypointName == "Init"){ 
+                });break;
+        case Init : 
                     return match((Bytes.unpack(action.payload) as option<[address, nat]>), {
                         None : () => failwith("Cannot find the address parameter for changeVersion"),
                         Some : (initParam:[address, nat]) => init([initParam[0], initParam[1], pokeTraces  , feedback  , ticketOwnership, tzip18])
-                    });
-                }
-                else { if(action.entrypointName == "changeVersion") {
+                    });break;
+        case changeVersion :
                     return match((Bytes.unpack(action.payload) as option<address>), {
                         None : () => failwith("Cannot find the address parameter for changeVersion"),
                         Some : (other:address) => changeVersion([other, pokeTraces  , feedback  , ticketOwnership, tzip18])
-                    });
-                    }
-                    else {
-                        return failwith("Non-existant method"); 
-                    }
-                }
-            }
-        }
-    
+                    });break;            
+        default : return failwith("Non-existant method"); 
+        }*/
 };
 
 // @view

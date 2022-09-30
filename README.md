@@ -203,21 +203,18 @@ const poke = ([pokeTraces  , feedback  , ticketOwnership,feedbackFunction] : [ma
 };
 
 const init = ([a, ticketCount, pokeTraces  , feedback  , ticketOwnership, feedbackFunction] : [address, nat, map<address, pokeMessage>  , string  , map<address,ticket<string>>,feedbackFunction]) : return_ => {
-    if(ticketCount == (0 as nat)){
-        return [  list([]) as list<operation>,{
+    return (ticketCount == (0 as nat))? [  list([]) as list<operation>,{
             feedback,
             pokeTraces,
             ticketOwnership ,  
             feedbackFunction
-            }];
-    } else {
-        return [  list([]) as list<operation>,{
+            }]
+            : [  list([]) as list<operation>,{
             feedback,
             pokeTraces,
             ticketOwnership : Map.add(a,Tezos.create_ticket("can_poke", ticketCount),ticketOwnership) ,  
             feedbackFunction
             }];
-    }
 };
 ```
 
@@ -474,21 +471,18 @@ const pokeAndGetFeedback = ([oracleAddress,pokeTraces  , feedback  , ticketOwner
 };
 
 const init = ([a, ticketCount, pokeTraces  , feedback  , ticketOwnership, tzip18] : [address, nat, map<address, pokeMessage>  , string  , map<address,ticket<string>>,TZIP18.tzip18]) : return_ => {
-    if(ticketCount == (0 as nat)){
-        return [  list([]) as list<operation>,{
+    return (ticketCount == (0 as nat)) ? [  list([]) as list<operation>,{
             feedback,
             pokeTraces,
             ticketOwnership,
             tzip18
-            }];
-    } else {
-        return [  list([]) as list<operation>,{
+            }] 
+            : [  list([]) as list<operation>,{
             feedback,
             pokeTraces,
             ticketOwnership : Map.add(a,Tezos.create_ticket("can_poke", ticketCount),ticketOwnership),
             tzip18
             }];
-    }
 };
 ```
 
