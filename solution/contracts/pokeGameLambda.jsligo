@@ -158,7 +158,7 @@ export const main = ([action, store]: [parameter, storage]): return_ => {
         ticketOwnership,
         feedbackFunction
       ]),
-    UpdateFeedbackFunction: (newCode: feedbackFunction) => [
+      UpdateFeedbackFunction: (newCode: feedbackFunction) => [
   list([]),
   { pokeTraces, feedback, ticketOwnership, feedbackFunction: newCode }
 ]

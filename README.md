@@ -327,11 +327,11 @@ taq deploy pokeGame.tz -e testing
 ```
 
 ```logs
-┌─────────────┬──────────────────────────────────────┬──────────┬─────────────┐
-│ Contract    │ Address                              │ Alias    │ Destination │
-├─────────────┼──────────────────────────────────────┼──────────┼─────────────┤
-│ pokeGame.tz │ KT1NNmpuVCZYNQ9eFFNSRecuzxtvb8Zqx1Fk │ pokeGame │ ghostnet    │
-└─────────────┴──────────────────────────────────────┴──────────┴─────────────┘
+┌─────────────┬──────────────────────────────────────┬──────────┬──────────────────┬─────────────────────────────────────┐
+│ Contract    │ Address                              │ Alias    │ Balance In Mutez │ Destination                         │
+├─────────────┼──────────────────────────────────────┼──────────┼──────────────────┼─────────────────────────────────────┤
+│ pokeGame.tz │ KT1FwYoUNAZVhf8Bct4qcAzs78A9SjBspfYy │ pokeGame │ 0                │ https://ghostnet.tezos.marigold.dev │
+└─────────────┴──────────────────────────────────────┴──────────┴──────────────────┴─────────────────────────────────────┘
 ```
 
 Time to go on the dapp to test
@@ -343,8 +343,6 @@ taq generate types ./app/src
 cd app
 yarn run start
 ```
-
-> Note : like in previous training, export the `Storage` type on `./app/src/pokeGame.types.ts` like this `export type Storage = { `
 
 Run the user sequence on the web page :
 
@@ -361,7 +359,7 @@ Edit the file pokeGame.parameters.jsligo
 
 ```jsligo
 #include "pokeGame.jsligo"
-const default_parameter = UpdateFeedbackFunction((oracleAddress : address) : string => "YEAH!!!");
+const default_parameter = UpdateFeedbackFunction((_oracleAddress : address) : string => "YEAH!!!");
 ```
 
 Compile all and call an init transaction
@@ -372,12 +370,12 @@ taq call pokeGame --param pokeGame.parameter.default_parameter.tz -e testing
 ```
 
 ```logs
-┌────────────────┬──────────────────────────────────────┬──────────────┬──────────────────────────────────────────────────┬────────────┬─────────────────────────────────────┐
-│ Contract Alias │ Contract Address                     │ Tez Transfer │ Parameter                                        │ Entrypoint │ Destination                         │
-├────────────────┼──────────────────────────────────────┼──────────────┼──────────────────────────────────────────────────┼────────────┼─────────────────────────────────────┤
-│ pokeGame       │ KT1NNmpuVCZYNQ9eFFNSRecuzxtvb8Zqx1Fk │ 0            │ (Right (Right { DROP ; PUSH string "YEAH!!!" })) │ default    │ https://ghostnet.tezos.marigold.dev │
-│                │                                      │              │                                                  │            │                                     │
-└────────────────┴──────────────────────────────────────┴──────────────┴──────────────────────────────────────────────────┴────────────┴─────────────────────────────────────┘
+┌────────────────┬──────────────────────────────────────┬──────────────────────────────────────────────────┬────────────┬────────────────┬─────────────────────────────────────┐
+│ Contract Alias │ Contract Address                     │ Parameter                                        │ Entrypoint │ Mutez Transfer │ Destination                         │
+├────────────────┼──────────────────────────────────────┼──────────────────────────────────────────────────┼────────────┼────────────────┼─────────────────────────────────────┤
+│ pokeGame       │ KT1FwYoUNAZVhf8Bct4qcAzs78A9SjBspfYy │ (Right (Right { DROP ; PUSH string "YEAH!!!" })) │ default    │ 0              │ https://ghostnet.tezos.marigold.dev │
+│                │                                      │                                                  │            │                │                                     │
+└────────────────┴──────────────────────────────────────┴──────────────────────────────────────────────────┴────────────┴────────────────┴─────────────────────────────────────┘
 ```
 
 Run the user sequence on the web page :
@@ -1017,7 +1015,7 @@ Edit to this below (be careful to point `governance` to your taq default user ac
 ```jsligo
 #include "proxy.jsligo"
 const default_storage = {
-  governance : "tz3fcNNiZoPXDpyCoaZ5Tm7RUzBGbFVQzAQ2" as address, //admins
+  governance : "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb" as address, //admins
   entrypoints : Big_map.empty as big_map<string,entrypointType> //interface schema map
 };
 ```
@@ -1030,11 +1028,11 @@ taq deploy proxy.tz -e testing
 ```
 
 ```logs
-┌──────────┬──────────────────────────────────────┬───────┬─────────────┐
-│ Contract │ Address                              │ Alias │ Destination │
-├──────────┼──────────────────────────────────────┼───────┼─────────────┤
-│ proxy.tz │ KT19QrVW7ipMXuqYKkiznbE8nGLUB6UPZtwJ │ proxy │ ghostnet    │
-└──────────┴──────────────────────────────────────┴───────┴─────────────┘
+┌──────────┬──────────────────────────────────────┬───────┬──────────────────┬─────────────────────────────────────┐
+│ Contract │ Address                              │ Alias │ Balance In Mutez │ Destination                         │
+├──────────┼──────────────────────────────────────┼───────┼──────────────────┼─────────────────────────────────────┤
+│ proxy.tz │ KT1GKMcXxJCfZuYj5W6G7msabCQ6bZwpMxdw │ proxy │ 0                │ https://ghostnet.tezos.marigold.dev │
+└──────────┴──────────────────────────────────────┴───────┴──────────────────┴─────────────────────────────────────┘
 ```
 
 Keep this proxy address, as you will need to report it below on `tzip18.proxy` field :warning:
@@ -1048,7 +1046,7 @@ const default_storage = {
     feedback : "kiss",
     ticketOwnership : Map.empty as map<address,ticket<string>>,  //ticket of claims
     tzip18 : {
-                proxy : "KT19QrVW7ipMXuqYKkiznbE8nGLUB6UPZtwJ" as address,
+                proxy : "KT1GKMcXxJCfZuYj5W6G7msabCQ6bZwpMxdw" as address,
                 version : 1 as nat,
                 contractPrevious : None() as option<address>,
                 contractNext : None() as option<address>
@@ -1062,11 +1060,11 @@ taq deploy pokeGame.tz -e testing
 ```
 
 ```logs
-┌─────────────┬──────────────────────────────────────┬──────────┬─────────────┐
-│ Contract    │ Address                              │ Alias    │ Destination │
-├─────────────┼──────────────────────────────────────┼──────────┼─────────────┤
-│ pokeGame.tz │ KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39 │ pokeGame │ ghostnet    │
-└─────────────┴──────────────────────────────────────┴──────────┴─────────────┘
+┌─────────────┬──────────────────────────────────────┬──────────┬──────────────────┬─────────────────────────────────────┐
+│ Contract    │ Address                              │ Alias    │ Balance In Mutez │ Destination                         │
+├─────────────┼──────────────────────────────────────┼──────────┼──────────────────┼─────────────────────────────────────┤
+│ pokeGame.tz │ KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk │ pokeGame │ 0                │ https://ghostnet.tezos.marigold.dev │
+└─────────────┴──────────────────────────────────────┴──────────┴──────────────────┴─────────────────────────────────────┘
 ```
 
 Let's tell the proxy that there is a first contract deployed with some interface.
@@ -1087,23 +1085,23 @@ const initProxyWithV1 = Upgrade(
       name : "Poke",
       isRemoved  : false,
       entrypoint : Some({method : "Poke",
-                        addr : "KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39" as address })},
+                        addr : "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" as address })},
     {
       name : "PokeAndGetFeedback",
       isRemoved  : false,
-      entrypoint : Some({method : "PokeAndGetFeedback", addr : "KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39" as address })},
+      entrypoint : Some({method : "PokeAndGetFeedback", addr : "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" as address })},
     {
       name : "Init",
       isRemoved  : false,
-      entrypoint : Some({method : "Init", addr : "KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39" as address })},
+      entrypoint : Some({method : "Init", addr : "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" as address })},
     {
       name : "changeVersion",
       isRemoved  : false,
-      entrypoint : Some({method : "changeVersion", addr : "KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39" as address })},
+      entrypoint : Some({method : "changeVersion", addr : "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" as address })},
     {
       name : "feedback",
       isRemoved  : false,
-      entrypoint : Some({method : "feedback", addr : "KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39" as address})}
+      entrypoint : Some({method : "feedback", addr : "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" as address})}
     ]) as list<entrypointOperation>,
     None() as option<changeVersion>
   ]);
@@ -1119,21 +1117,21 @@ taq call proxy --param proxy.parameter.initProxyWithV1.tz -e testing
 output :
 
 ```logs
-┌────────────────┬──────────────────────────────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────────┬────────────┬────────────────┬────────────────────────────────┐
-│ Contract Alias │ Contract Address                     │ Parameter                                                                                              │ Entrypoint │ Mutez Transfer │ Destination                    │
-├────────────────┼──────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────┼────────────────┼────────────────────────────────┤
-│ proxy          │ KT19QrVW7ipMXuqYKkiznbE8nGLUB6UPZtwJ │ (Right                                                                                                 │ default    │ 0              │ https://ghostnet.ecadinfra.com │
-│                │                                      │    (Pair { Pair (Pair (Some (Pair "KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39" "Poke")) False) "Poke" ;      │            │                │                                │
-│                │                                      │            Pair (Pair (Some (Pair "KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39" "PokeAndGetFeedback")) False) │            │                │                                │
-│                │                                      │                 "PokeAndGetFeedback" ;                                                                 │            │                │                                │
-│                │                                      │            Pair (Pair (Some (Pair "KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39" "Init")) False) "Init" ;      │            │                │                                │
-│                │                                      │            Pair (Pair (Some (Pair "KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39" "changeVersion")) False)      │            │                │                                │
-│                │                                      │                 "changeVersion" ;                                                                      │            │                │                                │
-│                │                                      │            Pair (Pair (Some (Pair "KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39" "feedback")) False)           │            │                │                                │
-│                │                                      │                 "feedback" }                                                                           │            │                │                                │
-│                │                                      │          None))                                                                                        │            │                │                                │
-│                │                                      │                                                                                                        │            │                │                                │
-└────────────────┴──────────────────────────────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────────┴────────────┴────────────────┴────────────────────────────────┘
+┌────────────────┬──────────────────────────────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────────┬────────────┬────────────────┬─────────────────────────────────────┐
+│ Contract Alias │ Contract Address                     │ Parameter                                                                                              │ Entrypoint │ Mutez Transfer │ Destination                         │
+├────────────────┼──────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────┼────────────────┼─────────────────────────────────────┤
+│ proxy          │ KT1GKMcXxJCfZuYj5W6G7msabCQ6bZwpMxdw │ (Right                                                                                                 │ default    │ 0              │ https://ghostnet.tezos.marigold.dev │
+│                │                                      │    (Pair { Pair (Pair (Some (Pair "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" "Poke")) False) "Poke" ;      │            │                │                                     │
+│                │                                      │            Pair (Pair (Some (Pair "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" "PokeAndGetFeedback")) False) │            │                │                                     │
+│                │                                      │                 "PokeAndGetFeedback" ;                                                                 │            │                │                                     │
+│                │                                      │            Pair (Pair (Some (Pair "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" "Init")) False) "Init" ;      │            │                │                                     │
+│                │                                      │            Pair (Pair (Some (Pair "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" "changeVersion")) False)      │            │                │                                     │
+│                │                                      │                 "changeVersion" ;                                                                      │            │                │                                     │
+│                │                                      │            Pair (Pair (Some (Pair "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" "feedback")) False)           │            │                │                                     │
+│                │                                      │                 "feedback" }                                                                           │            │                │                                     │
+│                │                                      │          None))                                                                                        │            │                │                                     │
+│                │                                      │                                                                                                        │            │                │                                     │
+└────────────────┴──────────────────────────────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────────┴────────────┴────────────────┴─────────────────────────────────────┘
 ```
 
 #### Lets' go to the frontend
@@ -1188,6 +1186,14 @@ function App() {
 
   useEffect(() => {
     Tezos.setWalletProvider(wallet);
+    (async () => {
+      const activeAccount = await wallet.client.getActiveAccount();
+      if (activeAccount) {
+        setUserAddress(activeAccount.address);
+        const balance = await Tezos.tz.getBalance(activeAccount.address);
+        setUserBalance(balance.toNumber());
+      }
+    })();
   }, [wallet]);
   const [userAddress, setUserAddress] = useState<string>("");
   const [userBalance, setUserBalance] = useState<number>(0);
@@ -1222,11 +1228,11 @@ function App() {
       const map = new Map<string, ProxyStorage & ContractStorage>();
       for (const c of taquitoContracts) {
         const s: ProxyStorage = await c.storage();
-        let firstEp: { addr: address; method: string } | undefined =
-          await s.entrypoints.get("Poke");
+        try {
+          let firstEp: { addr: address; method: string } | undefined =
+            await s.entrypoints.get("Poke");
 
-        if (firstEp) {
-          try {
+          if (firstEp) {
             let underlyingContract: PokeGameWalletType = await Tezos.wallet.at(
               "" + firstEp!.addr
             );
@@ -1234,18 +1240,18 @@ function App() {
               ...s,
               ...(await underlyingContract.storage()),
             });
-          } catch (error) {
-            console.log(error);
+          } else {
             console.log(
-              "final contract is not well configured ... for contract " +
-                firstEp!.addr
+              "proxy is not well configured ... for contract " + c.address
             );
+            continue;
           }
-        } else {
+        } catch (error) {
+          console.log(error);
           console.log(
-            "proxy is not well configured ... for contract " + c.address
+            "final contract is not well configured ... for contract " +
+              c.address
           );
-          continue;
         }
       }
       console.log("map", map);
@@ -1420,10 +1426,10 @@ const storageV2 = {
   feedback: "hello",
   ticketOwnership: Map.empty as map<address, ticket<string>>,
   tzip18: {
-    proxy: "KT19QrVW7ipMXuqYKkiznbE8nGLUB6UPZtwJ" as address,
+    proxy: "KT1GKMcXxJCfZuYj5W6G7msabCQ6bZwpMxdw" as address,
     version: 2 as nat,
     contractPrevious: Some(
-      "KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39" as address
+      "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" as address
     ) as option<address>,
     contractNext: None() as option<address>,
   },
@@ -1436,11 +1442,11 @@ taq deploy pokeGame.tz -e testing --storage pokeGame.storage.storageV2.tz
 ```
 
 ```logs
-┌─────────────┬──────────────────────────────────────┬──────────┬─────────────┐
-│ Contract    │ Address                              │ Alias    │ Destination │
-├─────────────┼──────────────────────────────────────┼──────────┼─────────────┤
-│ pokeGame.tz │ KT19VgZcNEQ4uThCjSbAJQcgHBx4JXyuFKYo │ pokeGame │ ghostnet    │
-└─────────────┴──────────────────────────────────────┴──────────┴─────────────┘
+┌─────────────┬──────────────────────────────────────┬──────────┬──────────────────┬─────────────────────────────────────┐
+│ Contract    │ Address                              │ Alias    │ Balance In Mutez │ Destination                         │
+├─────────────┼──────────────────────────────────────┼──────────┼──────────────────┼─────────────────────────────────────┤
+│ pokeGame.tz │ KT1U7Xi5ZEBRS4GqYwqPwyb19XLkA1jx2sNU │ pokeGame │ 0                │ https://ghostnet.tezos.marigold.dev │
+└─────────────┴──────────────────────────────────────┴──────────┴──────────────────┴─────────────────────────────────────┘
 ```
 
 Tell our proxy than we have new entrypoints to the V2 and remove the ones from V1.
@@ -1454,7 +1460,7 @@ Add a new parameter variable on `proxy.parameters.jsligo`. Don't forget to chang
       isRemoved: false,
       entrypoint: Some({
         method: "Poke",
-        addr: "KT19VgZcNEQ4uThCjSbAJQcgHBx4JXyuFKYo" as address,
+        addr: "KT1U7Xi5ZEBRS4GqYwqPwyb19XLkA1jx2sNU" as address,
       }),
     },
     {
@@ -1462,7 +1468,7 @@ Add a new parameter variable on `proxy.parameters.jsligo`. Don't forget to chang
       isRemoved: false,
       entrypoint: Some({
         method: "PokeAndGetFeedback",
-        addr: "KT19VgZcNEQ4uThCjSbAJQcgHBx4JXyuFKYo" as address,
+        addr: "KT1U7Xi5ZEBRS4GqYwqPwyb19XLkA1jx2sNU" as address,
       }),
     },
     {
@@ -1470,7 +1476,7 @@ Add a new parameter variable on `proxy.parameters.jsligo`. Don't forget to chang
       isRemoved: false,
       entrypoint: Some({
         method: "Init",
-        addr: "KT19VgZcNEQ4uThCjSbAJQcgHBx4JXyuFKYo" as address,
+        addr: "KT1U7Xi5ZEBRS4GqYwqPwyb19XLkA1jx2sNU" as address,
       }),
     },
     {
@@ -1478,7 +1484,7 @@ Add a new parameter variable on `proxy.parameters.jsligo`. Don't forget to chang
       isRemoved: false,
       entrypoint: Some({
         method: "changeVersion",
-        addr: "KT19VgZcNEQ4uThCjSbAJQcgHBx4JXyuFKYo" as address,
+        addr: "KT1U7Xi5ZEBRS4GqYwqPwyb19XLkA1jx2sNU" as address,
       }),
     },
     {
@@ -1486,7 +1492,7 @@ Add a new parameter variable on `proxy.parameters.jsligo`. Don't forget to chang
       isRemoved: false,
       entrypoint: Some({
         method: "feedback",
-        addr: "KT19VgZcNEQ4uThCjSbAJQcgHBx4JXyuFKYo" as address,
+        addr: "KT1U7Xi5ZEBRS4GqYwqPwyb19XLkA1jx2sNU" as address,
       }),
     }
   ]) as list<entrypointOperation>,
@@ -1522,8 +1528,8 @@ Add a new parameter on `proxy.parameters.jsligo` to force change of version on o
 const changeVersionV1ToV2 = Upgrade([
   list([]) as list<entrypointOperation>,
   Some({
-    oldAddr: "KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39" as address,
-    newAddr: "KT19VgZcNEQ4uThCjSbAJQcgHBx4JXyuFKYo" as address,
+    oldAddr: "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" as address,
+    newAddr: "KT1U7Xi5ZEBRS4GqYwqPwyb19XLkA1jx2sNU" as address,
   }) as option<changeVersion>
 ]);
 ```
@@ -1533,7 +1539,7 @@ taq compile proxy.jsligo
 taq call proxy --param proxy.parameter.changeVersionV1ToV2.tz -e testing
 ```
 
-Check on an indexer that the V1 storage.tzip18.contractNext is pointing to the next version address V2 : [https://ghostnet.tzkt.io/KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39/storage/](https://ghostnet.tzkt.io/KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39/storage/)
+Check on an indexer that the V1 storage.tzip18.contractNext is pointing to the next version address V2 : [https://ghostnet.tzkt.io/KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk/storage/](https://ghostnet.tzkt.io/KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk/storage/)
 
 :tada: This ends the proxy pattern implementation. Your old contract is no more "runnable" and your proxy is pointing to the last version
 

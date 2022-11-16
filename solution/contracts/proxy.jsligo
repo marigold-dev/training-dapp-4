@@ -54,7 +54,6 @@ const callContract = ([param, storage]: [callContract, storage]): _return => {
   });
 };
 
-
 /**
  * Function for administrators to update entrypoints and change current contract version
  **/

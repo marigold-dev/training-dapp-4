@@ -27,6 +27,14 @@ function App() {
 
   useEffect(() => {
     Tezos.setWalletProvider(wallet);
+    (async () => {
+      const activeAccount = await wallet.client.getActiveAccount();
+      if (activeAccount) {
+        setUserAddress(activeAccount.address);
+        const balance = await Tezos.tz.getBalance(activeAccount.address);
+        setUserBalance(balance.toNumber());
+      }
+    })();
   }, [wallet]);
   const [userAddress, setUserAddress] = useState<string>("");
   const [userBalance, setUserBalance] = useState<number>(0);
@@ -61,11 +69,11 @@ function App() {
       const map = new Map<string, ProxyStorage & ContractStorage>();
       for (const c of taquitoContracts) {
         const s: ProxyStorage = await c.storage();
-        let firstEp: { addr: address; method: string } | undefined =
-          await s.entrypoints.get("Poke");
+        try {
+          let firstEp: { addr: address; method: string } | undefined =
+            await s.entrypoints.get("Poke");
 
-        if (firstEp) {
-          try {
+          if (firstEp) {
             let underlyingContract: PokeGameWalletType = await Tezos.wallet.at(
               "" + firstEp!.addr
             );
@@ -73,18 +81,18 @@ function App() {
               ...s,
               ...(await underlyingContract.storage()),
             });
-          } catch (error) {
-            console.log(error);
+          } else {
             console.log(
-              "final contract is not well configured ... for contract " +
-                firstEp!.addr
+              "proxy is not well configured ... for contract " + c.address
             );
+            continue;
           }
-        } else {
+        } catch (error) {
+          console.log(error);
           console.log(
-            "proxy is not well configured ... for contract " + c.address
+            "final contract is not well configured ... for contract " +
+              c.address
           );
-          continue;
         }
       }
       console.log("map", map);

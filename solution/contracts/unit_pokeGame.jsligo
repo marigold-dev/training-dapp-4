@@ -17,8 +17,8 @@ export const _testPoke = (main : main_fn, s : address, ticketCount : nat, expect
 
     //contract origination
     const [taddr, _, _] = Test.originate(main, {
-        pokeTraces : Map.empty as map<address, PokeGame.pokeMessage> , 
-        feedback : "kiss" , 
+        pokeTraces : Map.empty as map<address, PokeGame.pokeMessage> ,
+        feedback : "kiss" ,
         ticketOwnership : Map.empty as map<address,ticket<string>>},
         0 as tez);
     const contr = Test.to_contract(taddr);
@@ -38,22 +38,22 @@ export const _testPoke = (main : main_fn, s : address, ticketCount : nat, expect
 
     return match(status,{
         Fail : (tee : test_exec_error) => match(tee,{
-                                Other: (msg : string) => assert_with_error(expectedResult==false,msg), 
-                                Balance_too_low : (_record : [ address ,  tez , tez ]) => assert_with_error(expectedResult==false,"ERROR Balance_too_low"), 
+                                Other: (msg : string) => assert_with_error(expectedResult==false,msg),
+                                Balance_too_low : (_record : [ address ,  tez , tez ]) => assert_with_error(expectedResult==false,"ERROR Balance_too_low"),
                                 Rejected: (s:[michelson_program , address])=>assert_with_error(expectedResult==false,Test.to_string(s[0]))}),
         Success : (_n : nat) => match(Map.find_opt (s, (Test.get_storage(taddr) as PokeGame.storage).pokeTraces), {
                                 Some: (pokeMessage: PokeGame.pokeMessage) => { assert_with_error(pokeMessage.feedback == "","feedback "+pokeMessage.feedback+" is not equal to expected "+"(empty)"); assert_with_error(pokeMessage.receiver == contrAddress,"receiver is not equal");} ,
                                 None: () => assert_with_error(expectedResult==false,"don't find traces")
        })
     });
-      
+
   };
-  
- 
+
+
   //********** TESTS *************/
 
-  const _ = Test.log("*** Run test to pass ***"); 
+  const _ = Test.log("*** Run test to pass ***");
   const testSender1Poke = _testPoke([PokeGame.main,sender1, 1 as nat,true]);
 
-  const _ = Test.log("*** Run test to fail ***"); 
+  const _ = Test.log("*** Run test to fail ***");
   const testSender1PokeWithNoTicketsToFail = _testPoke([PokeGame.main,sender1, 0 as nat,false]) ;
