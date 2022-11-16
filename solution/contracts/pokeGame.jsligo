@@ -6,135 +6,245 @@ export type pokeMessage = {
 };
 
 export type storage = {
-    pokeTraces : map<address, pokeMessage>,
-    feedback : string,
-    ticketOwnership : map<address,ticket<string>>,  //ticket of claims
-    tzip18 : TZIP18.tzip18
+  pokeTraces: map<address, pokeMessage>,
+  feedback: string,
+  ticketOwnership: map<address, ticket<string>>, //ticket of claims
+  tzip18: TZIP18.tzip18
 };
 
 type parameter = {
-  entrypointName  : string,
-  payload : bytes
+  entrypointName: string,
+  payload: bytes
 };
 
 export type return_ = [list<operation>, storage];
 
-const poke = ([pokeTraces  , feedback  , ticketOwnership,tzip18] : [map<address, pokeMessage>  , string  , map<address,ticket<string>>,TZIP18.tzip18]) : return_ => {
-    
-    //extract opt ticket from map
-    const [t , tom] : [option<ticket<string>>, map<address,ticket<string>>]  = Map.get_and_update(Tezos.get_source(), None() as option<ticket<string>>,ticketOwnership);
-    
-    return match(t, {
-        None : () => failwith("User does not have tickets => not allowed"),
-        Some : (_t : ticket<string>) => [  list([]) as list<operation>,{ //let t burn
+const poke = ([pokeTraces, feedback, ticketOwnership, tzip18]: [
+  map<address, pokeMessage>,
+  string,
+  map<address, ticket<string>>,
+  TZIP18.tzip18
+]): return_ => {
+  //extract opt ticket from map
+  const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
+    Map.get_and_update(
+      Tezos.get_source(),
+      None() as option<ticket<string>>,
+      ticketOwnership
+    );
+
+  return match(t, {
+    None: () => failwith("User does not have tickets => not allowed"),
+    Some: (_t: ticket<string>) => [
+      list([]) as list<operation>,
+      {
+        //let t burn
         feedback,
-        pokeTraces : Map.add(Tezos.get_source(), {receiver : Tezos.get_self_address(), feedback : ""},pokeTraces),
-        ticketOwnership : tom,
-        tzip18 
-     }]
-    });
+        pokeTraces: Map.add(
+          Tezos.get_source(),
+          { receiver: Tezos.get_self_address(), feedback: "" },
+          pokeTraces
+        ),
+        ticketOwnership: tom,
+        tzip18,
+      }
+    ]
+  });
 };
 
 // @no_mutation
-const pokeAndGetFeedback = ([oracleAddress,pokeTraces  , feedback  , ticketOwnership,tzip18]:[address,map<address, pokeMessage>  , string  , map<address,ticket<string>>,TZIP18.tzip18]) : return_ => {
-  
+const pokeAndGetFeedback = ([
+  oracleAddress,
+  pokeTraces,
+  feedback,
+  ticketOwnership,
+  tzip18
+]: [
+  address,
+  map<address, pokeMessage>,
+  string,
+  map<address, ticket<string>>,
+  TZIP18.tzip18
+]): return_ => {
   //extract opt ticket from map
-  const [t , tom] : [option<ticket<string>>, map<address,ticket<string>>]  = Map.get_and_update(Tezos.get_source(), None() as option<ticket<string>>,ticketOwnership);
-    
+  const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
+    Map.get_and_update(
+      Tezos.get_source(),
+      None() as option<ticket<string>>,
+      ticketOwnership
+    );
+
   //Read the feedback view
-  let feedbackOpt : option<bytes> = Tezos.call_view("getView", "feedback", oracleAddress);
+  let feedbackOpt: option<bytes> = Tezos.call_view(
+    "getView",
+    "feedback",
+    oracleAddress
+  );
 
   return match(t, {
-        None : () => failwith("User does not have tickets => not allowed"),
-        Some : (_t : ticket<string>) =>
-
-  match( feedbackOpt , {
-    Some : (f : bytes) => {
-        let feedbackMessage = {receiver : oracleAddress ,feedback: Option.unopt(Bytes.unpack(f) as option<string>)};
-        return [  list([]) as list<operation>, { 
-          feedback,
-          pokeTraces : Map.add(Tezos.get_source(),feedbackMessage , pokeTraces),
-          ticketOwnership : tom,
-          tzip18
-          }]; 
-        }, 
-    None : () => failwith("Cannot find view feedback on given oracle address")
-  })});
+    None: () => failwith("User does not have tickets => not allowed"),
+    Some: (_t: ticket<string>) =>
+      match(feedbackOpt, {
+        Some: (f: bytes) => {
+          let feedbackMessage = {
+            receiver: oracleAddress,
+            feedback: Option.unopt(Bytes.unpack(f) as option<string>),
+          };
+          return [
+            list([]) as list<operation>,
+            {
+              feedback,
+              pokeTraces: Map.add(
+                Tezos.get_source(),
+                feedbackMessage,
+                pokeTraces
+              ),
+              ticketOwnership: tom,
+              tzip18,
+            }
+          ]
+        },
+        None: () =>
+          failwith("Cannot find view feedback on given oracle address"),
+      }),
+  });
 };
 
-const init = ([a, ticketCount, pokeTraces  , feedback  , ticketOwnership, tzip18] : [address, nat, map<address, pokeMessage>  , string  , map<address,ticket<string>>,TZIP18.tzip18]) : return_ => {
-    if(ticketCount == (0 as nat)){
-        return [  list([]) as list<operation>,{
-            feedback,
-            pokeTraces,
-            ticketOwnership,
-            tzip18
-            }];
-    } else {
-        return [  list([]) as list<operation>,{
-            feedback,
-            pokeTraces,
-            ticketOwnership : Map.add(a,Tezos.create_ticket("can_poke", ticketCount),ticketOwnership),
-            tzip18
-            }];
-    }
+const init = ([a, ticketCount, pokeTraces, feedback, ticketOwnership, tzip18]: [
+  address,
+  nat,
+  map<address, pokeMessage>,
+  string,
+  map<address, ticket<string>>,
+  TZIP18.tzip18
+]): return_ => {
+  return ticketCount == (0 as nat)
+    ? [
+        list([]) as list<operation>,
+        {
+          feedback,
+          pokeTraces,
+          ticketOwnership,
+          tzip18
+        }
+      ]
+    : [
+        list([]) as list<operation>,
+        {
+          feedback,
+          pokeTraces,
+          ticketOwnership: Map.add(
+            a,
+            Tezos.create_ticket("can_poke", ticketCount),
+            ticketOwnership
+          ),
+          tzip18,
+        }
+      ]
 };
 
 /**
-* Function called by a parent contract or administrator to set the current version on an old contract
-**/
-const changeVersion = ([newAddress, pokeTraces  , feedback  , ticketOwnership, tzip18]:[address,map<address, pokeMessage>  , string  , map<address,ticket<string>>,TZIP18.tzip18]) : return_ => {
-  return [list([]) as list<operation>, {pokeTraces  , feedback  , ticketOwnership, tzip18 : {...tzip18, contractNext : Some(newAddress)}} ];
+ * Function called by a parent contract or administrator to set the current version on an old contract
+ **/
+const changeVersion = ([
+  newAddress,
+  pokeTraces,
+  feedback,
+  ticketOwnership,
+  tzip18
+]: [
+  address,
+  map<address, pokeMessage>,
+  string,
+  map<address, ticket<string>>,
+  TZIP18.tzip18
+]): return_ => {
+  return [
+    list([]) as list<operation>,
+    {
+      pokeTraces,
+      feedback,
+      ticketOwnership,
+      tzip18: { ...tzip18, contractNext: Some(newAddress) },
+    }
+  ]
 };
 
-export const main = ([action, store] : [parameter, storage]) : return_ => {
+export const main = ([action, store]: [parameter, storage]): return_ => {
+  //destructure the storage to avoid DUP
+  let { pokeTraces, feedback, ticketOwnership, tzip18 } = store;
 
-    //destructure the storage to avoid DUP
-    let {pokeTraces  , feedback  , ticketOwnership, tzip18 } = store;
+  const canBeCalled: bool = match(tzip18.contractNext, {
+    None: () => false, // I am the last version, but I cannot be called directly (or is my proxy, see later)
+    Some: (contract: address) => {
+      if (Tezos.get_sender() == contract) {
+        return true;
+      } // I am not the last but a parent contract is calling me
+      else {
+        return false;
+      }
+    }, // I am not the last version and a not-parent is trying to call me
+  });
 
-    const canBeCalled : bool = match(tzip18.contractNext , { 
-     None : () => false, // I am the last version, but I cannot be called directly (or is my proxy, see later)
-     Some : (contract : address) => {if(Tezos.get_sender() == contract){return true;} // I am not the last but a parent contract is calling me
-                                     else {return false;}} // I am not the last version and a not-parent is trying to call me
-    });
+  if (Tezos.get_sender() != tzip18.proxy && !canBeCalled){
+    return failwith("Only the proxy or contractNext can call this contract");};
 
-    if(Tezos.get_sender() != tzip18.proxy && !canBeCalled) return failwith("Only the proxy or contractNext can call this contract");
-    
-    
-    if(action.entrypointName == "Poke") { 
-            return poke([pokeTraces  , feedback  , ticketOwnership, tzip18]);
+  if (action.entrypointName == "Poke") {
+    return poke([pokeTraces, feedback, ticketOwnership, tzip18]);
+  } else {
+    if (action.entrypointName == "PokeAndGetFeedback") {
+      return match(Bytes.unpack(action.payload) as option<address>, {
+        None: () =>
+          failwith("Cannot find the address parameter for PokeAndGetFeedback"),
+        Some: (other: address) =>
+          pokeAndGetFeedback([
+            other,
+            pokeTraces,
+            feedback,
+            ticketOwnership,
+            tzip18
+          ]),
+      });
+    } else {
+      if (action.entrypointName == "Init") {
+        return match(Bytes.unpack(action.payload) as option<[address, nat]>, {
+          None: () =>
+            failwith("Cannot find the address parameter for changeVersion"),
+          Some: (initParam: [address, nat]) =>
+            init([
+              initParam[0],
+              initParam[1],
+              pokeTraces,
+              feedback,
+              ticketOwnership,
+              tzip18
+            ]),
+        });
+      } else {
+        if (action.entrypointName == "changeVersion") {
+          return match(Bytes.unpack(action.payload) as option<address>, {
+            None: () =>
+              failwith("Cannot find the address parameter for changeVersion"),
+            Some: (other: address) =>
+              changeVersion([
+                other,
+                pokeTraces,
+                feedback,
+                ticketOwnership,
+                tzip18
+              ]),
+          });
+        } else {
+          return failwith("Non-existant method");
         }
-        else {
-            if(action.entrypointName == "PokeAndGetFeedback") {
-                return match((Bytes.unpack(action.payload) as option<address>), {
-                    None : () => failwith("Cannot find the address parameter for PokeAndGetFeedback"),
-                    Some : (other:address) => pokeAndGetFeedback([other, pokeTraces  , feedback  , ticketOwnership, tzip18])
-                });
-            }
-            else {
-                if(action.entrypointName == "Init"){ 
-                    return match((Bytes.unpack(action.payload) as option<[address, nat]>), {
-                        None : () => failwith("Cannot find the address parameter for changeVersion"),
-                        Some : (initParam:[address, nat]) => init([initParam[0], initParam[1], pokeTraces  , feedback  , ticketOwnership, tzip18])
-                    });
-                }
-                else { if(action.entrypointName == "changeVersion") {
-                    return match((Bytes.unpack(action.payload) as option<address>), {
-                        None : () => failwith("Cannot find the address parameter for changeVersion"),
-                        Some : (other:address) => changeVersion([other, pokeTraces  , feedback  , ticketOwnership, tzip18])
-                    });
-                    }
-                    else {
-                        return failwith("Non-existant method"); 
-                    }
-                }
-            }
-        }
-    
+      }
+    }
+  }
 };
 
 // @view
-const getView = ([viewName, store] : [string, storage]) : bytes => { 
-  if(viewName == "feedback") {return Bytes.pack(store.feedback);}
-  else return failwith("View "+viewName+" not found on this contract");
+const getView = ([viewName, store]: [string, storage]): bytes => {
+  if (viewName == "feedback") {
+    return Bytes.pack(store.feedback);
+  } else return failwith("View " + viewName + " not found on this contract");
 };

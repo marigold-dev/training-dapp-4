@@ -1,13 +1,10 @@
-import { Dispatch, SetStateAction, useState, useEffect } from "react";
-import { TezosToolkit } from "@taquito/taquito";
+import { NetworkType } from "@airgap/beacon-sdk";
 import { BeaconWallet } from "@taquito/beacon-wallet";
-import {
-  NetworkType
-} from "@airgap/beacon-sdk";
+import { TezosToolkit } from "@taquito/taquito";
+import { Dispatch, SetStateAction } from "react";
 
 type ButtonProps = {
   Tezos: TezosToolkit;
-  setWallet: Dispatch<SetStateAction<any>>;
   setUserAddress: Dispatch<SetStateAction<string>>;
   setUserBalance: Dispatch<SetStateAction<number>>;
   wallet: BeaconWallet;
@@ -15,56 +12,27 @@ type ButtonProps = {
 
 const ConnectButton = ({
   Tezos,
-  setWallet,
   setUserAddress,
   setUserBalance,
-  wallet
+  wallet,
 }: ButtonProps): JSX.Element => {
-
-  const setup = async (userAddress: string): Promise<void> => {
-    setUserAddress(userAddress);
-    // updates balance
-    const balance = await Tezos.tz.getBalance(userAddress);
-    setUserBalance(balance.toNumber());
-  };
-
   const connectWallet = async (): Promise<void> => {
     try {
-      if(!wallet) await createWallet();
       await wallet.requestPermissions({
         network: {
           type: NetworkType.GHOSTNET,
-          rpcUrl: "https://ghostnet.tezos.marigold.dev"
-        }
+          rpcUrl: "https://ghostnet.tezos.marigold.dev",
+        },
       });
       // gets user's address
       const userAddress = await wallet.getPKH();
-      await setup(userAddress);
+      const balance = await Tezos.tz.getBalance(userAddress);
+      setUserBalance(balance.toNumber());
+      setUserAddress(userAddress);
     } catch (error) {
       console.log(error);
     }
   };
-
-  const createWallet = async() => {
-    // creates a wallet instance if not exists
-    if(!wallet){
-      wallet = new BeaconWallet({
-      name: "training",
-      preferredNetwork: NetworkType.GHOSTNET
-    });}
-    Tezos.setWalletProvider(wallet);
-    setWallet(wallet);
-    // checks if wallet was connected before
-    const activeAccount = await wallet.client.getActiveAccount();
-    if (activeAccount) {
-      const userAddress = await wallet.getPKH();
-      await setup(userAddress);
-    }
-  }
-
-  useEffect(() => {
-    (async () => createWallet())();
-  }, []);
 
   return (
     <div className="buttons">

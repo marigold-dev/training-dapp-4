@@ -1,143 +1,148 @@
 {
     "operations": {},
     "tasks": {
-        "@taqueria/plugin-taquito.transfer.1664455394661": {
+        "@taqueria/plugin-taquito.transfer.1668531496918": {
             "task": "transfer",
             "plugin": "@taqueria/plugin-taquito",
-            "time": 1664455394661,
+            "time": 1668531496918,
             "output": [
                 {
                     "contractAlias": "pokeGame",
-                    "contractAddress": "KT1NNmpuVCZYNQ9eFFNSRecuzxtvb8Zqx1Fk",
-                    "tezTransfer": "0",
+                    "contractAddress": "KT1XPt4mYirwUvjFyNDuB9xfTHyCMawRnY28",
                     "parameter": "(Right (Right { DROP ; PUSH string \"YEAH!!!\" }))\n\n",
                     "entrypoint": "default",
-                    "destination": "https://ghostnet.tezos.marigold.dev"
+                    "mutezTransfer": "0",
+                    "destination": "https://ghostnet.ecadinfra.com"
                 }
             ]
         },
-        "@taqueria/plugin-taquito.deploy.1664457953883": {
+        "@taqueria/plugin-taquito.deploy.1668532828374": {
             "task": "deploy",
             "plugin": "@taqueria/plugin-taquito",
-            "time": 1664457953883,
+            "time": 1668532828374,
+            "output": [
+                {
+                    "contract": "pokeGame.tz",
+                    "address": "KT19iTgXQcsbJEZzeakF8rm4NKfA8dV1CKsw",
+                    "alias": "pokeGame",
+                    "balanceInMutez": "0",
+                    "destination": "https://ghostnet.ecadinfra.com"
+                }
+            ]
+        },
+        "@taqueria/plugin-taquito.deploy.1668533200330": {
+            "task": "deploy",
+            "plugin": "@taqueria/plugin-taquito",
+            "time": 1668533200330,
             "output": [
                 {
                     "contract": "proxy.tz",
-                    "address": "KT1K58hKTqhw6rwcrcKC58rmBSgg4R7fzQov",
+                    "address": "KT19QrVW7ipMXuqYKkiznbE8nGLUB6UPZtwJ",
                     "alias": "proxy",
-                    "destination": "ghostnet"
+                    "balanceInMutez": "0",
+                    "destination": "https://ghostnet.ecadinfra.com"
                 }
             ]
         },
-        "@taqueria/plugin-taquito.deploy.1664458002904": {
+        "@taqueria/plugin-taquito.deploy.1668533246617": {
             "task": "deploy",
             "plugin": "@taqueria/plugin-taquito",
-            "time": 1664458002904,
+            "time": 1668533246617,
             "output": [
                 {
                     "contract": "pokeGame.tz",
-                    "address": "KT1Mz3xnHKqtSKj5E62MwLTtKbJzEFBksEhq",
+                    "address": "KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39",
                     "alias": "pokeGame",
-                    "destination": "ghostnet"
+                    "balanceInMutez": "0",
+                    "destination": "https://ghostnet.ecadinfra.com"
                 }
             ]
         },
-        "@taqueria/plugin-taquito.transfer.1664458121622": {
+        "@taqueria/plugin-taquito.transfer.1668533334616": {
             "task": "transfer",
             "plugin": "@taqueria/plugin-taquito",
-            "time": 1664458121622,
+            "time": 1668533334616,
             "output": [
                 {
                     "contractAlias": "proxy",
-                    "contractAddress": "KT1K58hKTqhw6rwcrcKC58rmBSgg4R7fzQov",
-                    "tezTransfer": "0",
-                    "parameter": "(Right\n   (Pair { Pair (Pair (Some (Pair \"KT1Mz3xnHKqtSKj5E62MwLTtKbJzEFBksEhq\" \"Poke\")) False) \"Poke\" ;\n           Pair (Pair (Some (Pair \"KT1Mz3xnHKqtSKj5E62MwLTtKbJzEFBksEhq\" \"PokeAndGetFeedback\")) False)\n                \"PokeAndGetFeedback\" ;\n           Pair (Pair (Some (Pair \"KT1Mz3xnHKqtSKj5E62MwLTtKbJzEFBksEhq\" \"Init\")) False) \"Init\" ;\n           Pair (Pair (Some (Pair \"KT1Mz3xnHKqtSKj5E62MwLTtKbJzEFBksEhq\" \"changeVersion\")) False)\n                \"changeVersion\" ;\n           Pair (Pair (Some (Pair \"KT1Mz3xnHKqtSKj5E62MwLTtKbJzEFBksEhq\" \"feedback\")) False)\n                \"feedback\" }\n         None))\n\n",
+                    "contractAddress": "KT19QrVW7ipMXuqYKkiznbE8nGLUB6UPZtwJ",
+                    "parameter": "(Right\n   (Pair { Pair (Pair (Some (Pair \"KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39\" \"Poke\")) False) \"Poke\" ;\n           Pair (Pair (Some (Pair \"KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39\" \"PokeAndGetFeedback\")) False)\n                \"PokeAndGetFeedback\" ;\n           Pair (Pair (Some (Pair \"KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39\" \"Init\")) False) \"Init\" ;\n           Pair (Pair (Some (Pair \"KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39\" \"changeVersion\")) False)\n                \"changeVersion\" ;\n           Pair (Pair (Some (Pair \"KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39\" \"feedback\")) False)\n                \"feedback\" }\n         None))\n\n",
                     "entrypoint": "default",
-                    "destination": "https://ghostnet.tezos.marigold.dev"
+                    "mutezTransfer": "0",
+                    "destination": "https://ghostnet.ecadinfra.com"
                 }
             ]
         },
-        "@taqueria/plugin-taquito.deploy.1664462214634": {
+        "@taqueria/plugin-taquito.deploy.1668585670234": {
             "task": "deploy",
             "plugin": "@taqueria/plugin-taquito",
-            "time": 1664462214634,
-            "output": [
-                {
-                    "contract": "proxy.tz",
-                    "address": "KT1XMHGhgAKWXrbzKAbJvJwpCCbskiT9QwfP",
-                    "alias": "proxy",
-                    "destination": "ghostnet"
-                }
-            ]
-        },
-        "@taqueria/plugin-taquito.deploy.1664462304124": {
-            "task": "deploy",
-            "plugin": "@taqueria/plugin-taquito",
-            "time": 1664462304124,
+            "time": 1668585670234,
             "output": [
                 {
                     "contract": "pokeGame.tz",
-                    "address": "KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7",
+                    "address": "KT1PmDjmd1qU2K2Eh4EeUytTbd4FRcxXvchj",
                     "alias": "pokeGame",
-                    "destination": "ghostnet"
+                    "balanceInMutez": "0",
+                    "destination": "https://ghostnet.ecadinfra.com"
                 }
             ]
         },
-        "@taqueria/plugin-taquito.transfer.1664462364721": {
+        "@taqueria/plugin-taquito.transfer.1668585869532": {
             "task": "transfer",
             "plugin": "@taqueria/plugin-taquito",
-            "time": 1664462364721,
+            "time": 1668585869532,
             "output": [
                 {
                     "contractAlias": "proxy",
-                    "contractAddress": "KT1XMHGhgAKWXrbzKAbJvJwpCCbskiT9QwfP",
-                    "tezTransfer": "0",
-                    "parameter": "(Right\n   (Pair { Pair (Pair (Some (Pair \"KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7\" \"Poke\")) False) \"Poke\" ;\n           Pair (Pair (Some (Pair \"KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7\" \"PokeAndGetFeedback\")) False)\n                \"PokeAndGetFeedback\" ;\n           Pair (Pair (Some (Pair \"KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7\" \"Init\")) False) \"Init\" ;\n           Pair (Pair (Some (Pair \"KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7\" \"changeVersion\")) False)\n                \"changeVersion\" ;\n           Pair (Pair (Some (Pair \"KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7\" \"feedback\")) False)\n                \"feedback\" }\n         None))\n\n",
+                    "contractAddress": "KT19QrVW7ipMXuqYKkiznbE8nGLUB6UPZtwJ",
+                    "parameter": "(Right\n   (Pair { Pair (Pair (Some (Pair \"KT1PmDjmd1qU2K2Eh4EeUytTbd4FRcxXvchj\" \"Poke\")) False) \"Poke\" ;\n           Pair (Pair (Some (Pair \"KT1PmDjmd1qU2K2Eh4EeUytTbd4FRcxXvchj\" \"PokeAndGetFeedback\")) False)\n                \"PokeAndGetFeedback\" ;\n           Pair (Pair (Some (Pair \"KT1PmDjmd1qU2K2Eh4EeUytTbd4FRcxXvchj\" \"Init\")) False) \"Init\" ;\n           Pair (Pair (Some (Pair \"KT1PmDjmd1qU2K2Eh4EeUytTbd4FRcxXvchj\" \"changeVersion\")) False)\n                \"changeVersion\" ;\n           Pair (Pair (Some (Pair \"KT1PmDjmd1qU2K2Eh4EeUytTbd4FRcxXvchj\" \"feedback\")) False)\n                \"feedback\" }\n         None))\n\n",
                     "entrypoint": "default",
-                    "destination": "https://ghostnet.tezos.marigold.dev"
+                    "mutezTransfer": "0",
+                    "destination": "https://ghostnet.ecadinfra.com"
                 }
             ]
         },
-        "@taqueria/plugin-taquito.deploy.1664464600520": {
+        "@taqueria/plugin-taquito.deploy.1668586079921": {
             "task": "deploy",
             "plugin": "@taqueria/plugin-taquito",
-            "time": 1664464600520,
+            "time": 1668586079921,
             "output": [
                 {
                     "contract": "pokeGame.tz",
-                    "address": "KT1AxZbF6hoXHGWZjcAn4MzLDRsVYgZGDmCL",
+                    "address": "KT19VgZcNEQ4uThCjSbAJQcgHBx4JXyuFKYo",
                     "alias": "pokeGame",
-                    "destination": "ghostnet"
+                    "balanceInMutez": "0",
+                    "destination": "https://ghostnet.ecadinfra.com"
                 }
             ]
         },
-        "@taqueria/plugin-taquito.transfer.1664464876862": {
+        "@taqueria/plugin-taquito.transfer.1668586159209": {
             "task": "transfer",
             "plugin": "@taqueria/plugin-taquito",
-            "time": 1664464876862,
+            "time": 1668586159209,
             "output": [
                 {
                     "contractAlias": "proxy",
-                    "contractAddress": "KT1XMHGhgAKWXrbzKAbJvJwpCCbskiT9QwfP",
-                    "tezTransfer": "0",
-                    "parameter": "(Right\n   (Pair { Pair (Pair (Some (Pair \"KT1AxZbF6hoXHGWZjcAn4MzLDRsVYgZGDmCL\" \"Poke\")) False) \"Poke\" ;\n           Pair (Pair (Some (Pair \"KT1AxZbF6hoXHGWZjcAn4MzLDRsVYgZGDmCL\" \"PokeAndGetFeedback\")) False)\n                \"PokeAndGetFeedback\" ;\n           Pair (Pair (Some (Pair \"KT1AxZbF6hoXHGWZjcAn4MzLDRsVYgZGDmCL\" \"Init\")) False) \"Init\" ;\n           Pair (Pair (Some (Pair \"KT1AxZbF6hoXHGWZjcAn4MzLDRsVYgZGDmCL\" \"changeVersion\")) False)\n                \"changeVersion\" ;\n           Pair (Pair (Some (Pair \"KT1AxZbF6hoXHGWZjcAn4MzLDRsVYgZGDmCL\" \"feedback\")) False)\n                \"feedback\" }\n         None))\n\n",
+                    "contractAddress": "KT19QrVW7ipMXuqYKkiznbE8nGLUB6UPZtwJ",
+                    "parameter": "(Right\n   (Pair { Pair (Pair (Some (Pair \"KT19VgZcNEQ4uThCjSbAJQcgHBx4JXyuFKYo\" \"Poke\")) False) \"Poke\" ;\n           Pair (Pair (Some (Pair \"KT19VgZcNEQ4uThCjSbAJQcgHBx4JXyuFKYo\" \"PokeAndGetFeedback\")) False)\n                \"PokeAndGetFeedback\" ;\n           Pair (Pair (Some (Pair \"KT19VgZcNEQ4uThCjSbAJQcgHBx4JXyuFKYo\" \"Init\")) False) \"Init\" ;\n           Pair (Pair (Some (Pair \"KT19VgZcNEQ4uThCjSbAJQcgHBx4JXyuFKYo\" \"changeVersion\")) False)\n                \"changeVersion\" ;\n           Pair (Pair (Some (Pair \"KT19VgZcNEQ4uThCjSbAJQcgHBx4JXyuFKYo\" \"feedback\")) False)\n                \"feedback\" }\n         None))\n\n",
                     "entrypoint": "default",
-                    "destination": "https://ghostnet.tezos.marigold.dev"
+                    "mutezTransfer": "0",
+                    "destination": "https://ghostnet.ecadinfra.com"
                 }
             ]
         },
-        "@taqueria/plugin-taquito.transfer.1664465245249": {
+        "@taqueria/plugin-taquito.transfer.1668586340940": {
             "task": "transfer",
             "plugin": "@taqueria/plugin-taquito",
-            "time": 1664465245249,
+            "time": 1668586340940,
             "output": [
                 {
                     "contractAlias": "proxy",
-                    "contractAddress": "KT1XMHGhgAKWXrbzKAbJvJwpCCbskiT9QwfP",
-                    "tezTransfer": "0",
-                    "parameter": "(Right\n   (Pair {}\n         (Some (Pair \"KT1AxZbF6hoXHGWZjcAn4MzLDRsVYgZGDmCL\" \"KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7\"))))\n\n",
+                    "contractAddress": "KT19QrVW7ipMXuqYKkiznbE8nGLUB6UPZtwJ",
+                    "parameter": "(Right\n   (Pair {}\n         (Some (Pair \"KT19VgZcNEQ4uThCjSbAJQcgHBx4JXyuFKYo\" \"KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39\"))))\n\n",
                     "entrypoint": "default",
-                    "destination": "https://ghostnet.tezos.marigold.dev"
+                    "mutezTransfer": "0",
+                    "destination": "https://ghostnet.ecadinfra.com"
                 }
             ]
         }
