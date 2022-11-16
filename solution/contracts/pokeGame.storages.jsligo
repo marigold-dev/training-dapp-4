@@ -4,21 +4,23 @@ const default_storage = {
     feedback : "kiss",
     ticketOwnership : Map.empty as map<address,ticket<string>>,  //ticket of claims
     tzip18 : {
-                proxy : "KT1XMHGhgAKWXrbzKAbJvJwpCCbskiT9QwfP" as address,
+                proxy : "KT19QrVW7ipMXuqYKkiznbE8nGLUB6UPZtwJ" as address,
                 version : 1 as nat,
                 contractPrevious : None() as option<address>,
-                contractNext : None() as option<address> 
+                contractNext : None() as option<address>
              }
 };
 
 const storageV2 = {
-    pokeTraces : Map.empty as map<address, pokeMessage> , 
-    feedback : "hello" , 
-    ticketOwnership : Map.empty as map<address,ticket<string>>, 
-    tzip18: {
-        proxy: "KT1XMHGhgAKWXrbzKAbJvJwpCCbskiT9QwfP" as address, 
-        version : 2 as nat, 
-        contractPrevious : Some("KT1XJ3HaQ8khTjLmvAKxzEiHNasZiSwA8LJ7" as address) as option<address>, 
-        contractNext : None() as option<address>
-        }
+  pokeTraces: Map.empty as map<address, pokeMessage>,
+  feedback: "hello",
+  ticketOwnership: Map.empty as map<address, ticket<string>>,
+  tzip18: {
+    proxy: "KT19QrVW7ipMXuqYKkiznbE8nGLUB6UPZtwJ" as address,
+    version: 2 as nat,
+    contractPrevious: Some(
+      "KT1NdxPhDn9z5f7E6Eqaoywcm6kj2PTiZb39" as address
+    ) as option<address>,
+    contractNext: None() as option<address>,
+  },
 };
