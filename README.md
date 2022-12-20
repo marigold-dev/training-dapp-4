@@ -110,7 +110,7 @@ We are going to change the implementation of the function `pokeAndGetFeedback`. 
 
 Let's start with adding the lambda function definition of the storage
 
-```jsligo
+```ligolang
 export type feedbackFunction = (oracleAddress: address) => string;
 
 export type storage = {
@@ -123,7 +123,7 @@ export type storage = {
 
 Update the main function, you have 1 additional field `feedbackFunction` on storage destructuring
 
-```jsligo
+```ligolang
 export const main = ([action, store]: [parameter, storage]): return_ => {
   //destructure the storage to avoid DUP
   let { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
@@ -152,7 +152,7 @@ export const main = ([action, store]: [parameter, storage]): return_ => {
 
 Edit the `PokeAndGetFeedback` function where we execute the lambda `feedbackFunction(..)`
 
-```jsligo
+```ligolang
 // @no_mutation
 const pokeAndGetFeedback = ([
   oracleAddress,
@@ -203,7 +203,7 @@ To modify the lambda function code we need an extra admin entrypoint `UpdateFeed
 
 Add this new entrypoint case on the `main` function switch-case pattern matching `match`. It takes a function definition coce and override existing one.
 
-```jsligo
+```ligolang
 UpdateFeedbackFunction: (newCode: feedbackFunction) => [
   list([]),
   { pokeTraces, feedback, ticketOwnership, feedbackFunction: newCode }
@@ -212,7 +212,7 @@ UpdateFeedbackFunction: (newCode: feedbackFunction) => [
 
 Add it also to the parameter definition
 
-```jsligo
+```ligolang
 export type parameter =
   | ["Poke"]
   | ["PokeAndGetFeedback", address]
@@ -222,7 +222,7 @@ export type parameter =
 
 As we broke the storage definition earlier, fix all storage field missing warnings on `poke` and `init` functions
 
-```jsligo
+```ligolang
 const poke = ([pokeTraces, feedback, ticketOwnership, feedbackFunction]: [
   map<address, pokeMessage>,
   string,
@@ -301,7 +301,7 @@ const init = ([
 
 Change also the initial storage with the old initial value of the lambda function (i.e calling a view to get a feedback)
 
-```jsligo
+```ligolang
 #include "pokeGame.jsligo"
 const default_storage = {
     pokeTraces : Map.empty as map<address, pokeMessage>,
@@ -357,7 +357,7 @@ Now, we update the lambda function in background with the CLI with our new admin
 
 Edit the file pokeGame.parameters.jsligo
 
-```jsligo
+```ligolang
 #include "pokeGame.jsligo"
 const default_parameter = UpdateFeedbackFunction((_oracleAddress : address) : string => "YEAH!!!");
 ```
@@ -459,7 +459,7 @@ taq create contract tzip18.jsligo
 
 Edit the file
 
-```jsligo
+```ligolang
 // Tzip 18 types
 export type tzip18 = {
   proxy: address,
@@ -473,13 +473,13 @@ This type will be included on all smartcontract storages to track the proxy addr
 
 Get back to `pokeGame.jsligo` and import this file on first line
 
-```jsligo
+```ligolang
 #import "./tzip18.jsligo" "TZIP18"
 ```
 
 add the type on the storage definition
 
-```jsligo
+```ligolang
 export type storage = {
   pokeTraces: map<address, pokeMessage>,
   feedback: string,
@@ -490,7 +490,7 @@ export type storage = {
 
 Now, we will have to modify `parameter` type to be completely generic
 
-```jsligo
+```ligolang
 type parameter = {
   entrypointName: string,
   payload: bytes
@@ -502,7 +502,7 @@ In a way, we break a bit compiler checks, but if we code well and cast stuff as 
 
 Fix all missing field tzip18 on storage structure in the file
 
-```jsligo
+```ligolang
 const poke = ([pokeTraces, feedback, ticketOwnership, tzip18]: [
   map<address, pokeMessage>,
   string,
@@ -636,7 +636,7 @@ const init = ([a, ticketCount, pokeTraces, feedback, ticketOwnership, tzip18]: [
 
 Rewrite the main function now
 
-```jsligo
+```ligolang
 export const main = ([action, store]: [parameter, storage]): return_ => {
   //destructure the storage to avoid DUP
   let { pokeTraces, feedback, ticketOwnership, tzip18 } = store;
@@ -716,7 +716,7 @@ export const main = ([action, store]: [parameter, storage]): return_ => {
 
 Add the last missing function changing the version of this contract and make it obsolete (just before the main function)
 
-```jsligo
+```ligolang
 /**
  * Function called by a parent contract or administrator to set the current version on an old contract
  **/
@@ -747,7 +747,7 @@ const changeVersion = ([
 
 Finally, change the view to a generic one and do a `if...else` on `viewName` argument
 
-```jsligo
+```ligolang
 // @view
 const getView = ([viewName, store]: [string, storage]): bytes => {
   if (viewName == "feedback") {
@@ -760,7 +760,7 @@ Change the initial storage
 
 > Note : for the moment we set the proxy address to fake KT1 address because we have not yet deploy the proxy
 
-```jsligo
+```ligolang
 #include "pokeGame.jsligo"
 const default_storage = {
     pokeTraces : Map.empty as map<address, pokeMessage>,
@@ -793,7 +793,7 @@ taq create contract proxy.jsligo
 
 Let's define the storage and entrypoints on it
 
-```jsligo
+```ligolang
 type storage = {
   governance: address, //admins
   entrypoints: big_map<string, entrypointType> //interface schema map
@@ -815,7 +815,7 @@ type _return = [list<operation>, storage];
 
 Add our missing types juste above
 
-```jsligo
+```ligolang
 type callContract = {
   entrypointName: string,
   payload: bytes
@@ -845,7 +845,7 @@ type changeVersion = {
 
 Add the main function (pretty simple) at the end of the file (as always)
 
-```jsligo
+```ligolang
 const main = ([p, s]: [parameter, storage]): _return => {
   return match(p, {
     Call: (p: parameter) => callContract(p, s),
@@ -856,7 +856,7 @@ const main = ([p, s]: [parameter, storage]): _return => {
 
 Add the `Call`entrypoint (simple forward). (Before main function)
 
-```jsligo
+```ligolang
 // the proxy function
 const callContract = ([param, storage]: [callContract, storage]): _return => {
   return match(Big_map.find_opt(param.entrypointName, storage.entrypoints), {
@@ -886,7 +886,7 @@ It gets the entrypoint to call and the payload in bytes and just forward it to t
 
 Then, write the `upgrade` entrypoint. (Before main function)
 
-```jsligo
+```ligolang
 /**
  * Function for administrators to update entrypoints and change current contract version
  **/
@@ -980,7 +980,7 @@ const upgrade = ([param, s]: [
 
 Last change is to expose any view from underlying contract (as we have one), declare it at the end of the file
 
-```jsligo
+```ligolang
 // @view
 const getView = ([viewName, store]: [string, storage]): bytes => {
   return match(Big_map.find_opt(viewName, store.entrypoints), {
@@ -1012,7 +1012,7 @@ taq create contract proxy.storages.jsligo
 
 Edit to this below (be careful to point `governance` to your taq default user account)
 
-```jsligo
+```ligolang
 #include "proxy.jsligo"
 const default_storage = {
   governance : "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb" as address, //admins
@@ -1039,7 +1039,7 @@ Keep this proxy address, as you will need to report it below on `tzip18.proxy` f
 
 Now you can deploy a smartcontract V1. ( :warning: Change with your **proxy address** on file `pokeGame.storages.jsligo` like mine )
 
-```jsligo
+```ligolang
 #include "pokeGame.jsligo"
 const default_storage = {
     pokeTraces : Map.empty as map<address, pokeMessage>,
@@ -1076,7 +1076,7 @@ taq create contract proxy.parameters.jsligo
 
 Edit it
 
-```jsligo
+```ligolang
 #include "proxy.jsligo"
 const initProxyWithV1 = Upgrade(
   [
@@ -1420,7 +1420,7 @@ Let's deploy a new contract V2 and test it again.
 
 Edit `pokeGame.storages.jsligo` and add a new variable on it. Don't forget again to change `proxy` and `contractPrevious` by our own values !!!
 
-```jsligo
+```ligolang
 const storageV2 = {
   pokeTraces: Map.empty as map<address, pokeMessage>,
   feedback: "hello",
@@ -1452,7 +1452,7 @@ taq deploy pokeGame.tz -e testing --storage pokeGame.storage.storageV2.tz
 Tell our proxy than we have new entrypoints to the V2 and remove the ones from V1.
 Add a new parameter variable on `proxy.parameters.jsligo`. Don't forget to change the `addr` values with the new contract address just above !!!
 
-```jsligo
+```ligolang
   const initProxyWithV2 = Upgrade([
   list([
     {
@@ -1524,7 +1524,7 @@ Now, your proxy is calling the contract V2 and should return `hello` on the trac
 
 Add a new parameter on `proxy.parameters.jsligo` to force change of version on old contract (:warning: replace below with your own addresses for V1 ad V2)
 
-```jsligo
+```ligolang
 const changeVersionV1ToV2 = Upgrade([
   list([]) as list<entrypointOperation>,
   Some({
