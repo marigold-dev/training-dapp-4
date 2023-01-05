@@ -107,7 +107,7 @@ h2 a:link {
 }
 
 td {
-  padding:0 1em,
+  padding: 0.1em 1em;
 }
 code {
   font-family: 'Roboto Mono', monospace;
