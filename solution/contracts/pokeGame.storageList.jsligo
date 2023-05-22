@@ -1,0 +1,8 @@
+#include "pokeGame.jsligo"
+const default_storage =
+  {
+    pokeTraces: Map.empty as map<address, pokeMessage>,
+    feedback: "kiss",
+    ticketOwnership: Map.empty as map<address, ticket<string>>,
+    feedbackFunction : ((oracleAddress : address) : string => { return match( Tezos.call_view("feedback", unit, oracleAddress) as option<string> , { Some : (feedback : string) => feedback,  None : () => failwith("Cannot find view feedback on given oracle address")  }); })
+};

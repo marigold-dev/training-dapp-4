@@ -1,35 +1,28 @@
 
 import { ContractAbstractionFromContractType, WalletContractAbstractionFromContractType } from './type-utils';
-import { address, Instruction, MMap, nat, ticket } from './type-aliases';
+import { address, MMap, nat, ticket } from './type-aliases';
 
 export type Storage = {
     feedback: string;
-    feedbackFunction: Instruction[];
     pokeTraces: MMap<address, {
         feedback: string;
         receiver: address;
     }>;
     ticketOwnership: MMap<address, ticket>;
+    tzip18: {
+        contractNext?: address;
+        contractPrevious?: address;
+        proxy: address;
+        version: nat;
+    };
 };
 
 type Methods = {
-    init: (
-        _0: address,
-        _1: nat,
-    ) => Promise<void>;
-    poke: () => Promise<void>;
-    pokeAndGetFeedback: (param: address) => Promise<void>;
-    updateFeedbackFunction: (param: Instruction[]) => Promise<void>;
+    
 };
 
 type MethodsObject = {
-    init: (params: {
-        0: address,
-        1: nat,
-    }) => Promise<void>;
-    poke: () => Promise<void>;
-    pokeAndGetFeedback: (param: address) => Promise<void>;
-    updateFeedbackFunction: (param: Instruction[]) => Promise<void>;
+    
 };
 
 type contractTypes = { methods: Methods, methodsObject: MethodsObject, storage: Storage, code: { __type: 'PokeGameCode', protocol: string, code: object[] } };

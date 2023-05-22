@@ -121,60 +121,21 @@ export type storage = {
 };
 ```
 
-Update the main function, you have 1 additional field `feedbackFunction` on storage destructuring
-
-```ligolang
-export const main = ([action, store]: [parameter, storage]): return_ => {
-  //destructure the storage to avoid DUP
-  let { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
-  return match(action, {
-    Poke: () => poke([pokeTraces, feedback, ticketOwnership, feedbackFunction]),
-    PokeAndGetFeedback: (other: address) =>
-      pokeAndGetFeedback([
-        other,
-        pokeTraces,
-        feedback,
-        ticketOwnership,
-        feedbackFunction
-      ]),
-    Init: (initParam: [address, nat]) =>
-      init([
-        initParam[0],
-        initParam[1],
-        pokeTraces,
-        feedback,
-        ticketOwnership,
-        feedbackFunction
-      ]),
-  });
-};
-```
+Let's do minor changes as you have 1 additional field `feedbackFunction` on storage destructuring.
 
 Edit the `PokeAndGetFeedback` function where we execute the lambda `feedbackFunction(..)`
 
 ```ligolang
-// @no_mutation
-const pokeAndGetFeedback = ([
-  oracleAddress,
-  pokeTraces,
-  feedback,
-  ticketOwnership,
-  feedbackFunction
-]: [
-  address,
-  map<address, pokeMessage>,
-  string,
-  map<address, ticket<string>>,
-  feedbackFunction
-]): return_ => {
-  //extract opt ticket from map
+/* @no_mutation */
+/* @entry */
+const pokeAndGetFeedback = (oracleAddress: address, store: storage): return_ => {
+  const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
   const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
     Map.get_and_update(
       Tezos.get_source(),
       None() as option<ticket<string>>,
       ticketOwnership
     );
-
   let feedbackMessage = {
     receiver: oracleAddress,
     feedback: feedbackFunction(oracleAddress),
@@ -199,101 +160,67 @@ Note the line with `feedbackFunction(oracleAddress)`, so we call the lambda and 
 
 On a first time we will inject the old code to check all still works and then we will modify the lamda code on the storage to check that behavior has changed.
 
-To modify the lambda function code we need an extra admin entrypoint `UpdateFeedbackFunction`
-
-Add this new entrypoint case on the `main` function switch-case pattern matching `match`. It takes a function definition coce and override existing one.
+To modify the lambda function code we need an extra admin entrypoint `updateFeedbackFunction`
 
 ```ligolang
-UpdateFeedbackFunction: (newCode: feedbackFunction) => [
+/* @entry */
+const updateFeedbackFunction = (newCode: feedbackFunction, store: storage): return_ => {
+  const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
+  return [
   list([]),
   { pokeTraces, feedback, ticketOwnership, feedbackFunction: newCode }
-]
-```
-
-Add it also to the parameter definition
-
-```ligolang
-export type parameter =
-  | ["Poke"]
-  | ["PokeAndGetFeedback", address]
-  | ["Init", address, nat]
-  | ["UpdateFeedbackFunction", feedbackFunction];
+];
+}
 ```
 
 As we broke the storage definition earlier, fix all storage field missing warnings on `poke` and `init` functions
 
 ```ligolang
-const poke = ([pokeTraces, feedback, ticketOwnership, feedbackFunction]: [
-  map<address, pokeMessage>,
-  string,
-  map<address, ticket<string>>,
-  feedbackFunction
-]): return_ => {
-  //extract opt ticket from map
+/* @entry */
+const poke = (_: parameter, store: storage): return_ => {
+  const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
   const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
     Map.get_and_update(
       Tezos.get_source(),
       None() as option<ticket<string>>,
       ticketOwnership
     );
-
-  return match(t, {
-    None: () => failwith("User does not have tickets => not allowed"),
-    Some: (_t: ticket<string>) => [
-      list([]) as list<operation>,
-      {
-        //let t burn
-        feedback,
-        pokeTraces: Map.add(
-          Tezos.get_source(),
-          { receiver: Tezos.get_self_address(), feedback: "" },
-          pokeTraces
-        ),
-        ticketOwnership: tom,
-        feedbackFunction,
-      }
-    ]
-  });
+  return match(
+    t,
+    {
+      None: () => failwith("User does not have tickets => not allowed"),
+      Some: (_t: ticket<string>) =>
+        [
+          list([]) as list<operation>,
+          {
+            feedback,
+            pokeTraces: Map.add(
+              Tezos.get_source(),
+              { receiver: Tezos.get_self_address(), feedback: "" },
+              pokeTraces
+            ),
+            ticketOwnership: tom,
+            feedbackFunction,
+          }
+        ]
+    }
+  )
 };
 
-const init = ([
-  a,
-  ticketCount,
-  pokeTraces,
-  feedback,
-  ticketOwnership,
-  feedbackFunction
-]: [
-  address,
-  nat,
-  map<address, pokeMessage>,
-  string,
-  map<address, ticket<string>>,
-  feedbackFunction
-]): return_ => {
+/* @entry */
+const init = ([a, ticketCount]: [address, nat], store: storage): return_ => {
+  const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
   if (ticketCount == (0 as nat)) {
     return [
       list([]) as list<operation>,
-      {
-        feedback,
-        pokeTraces,
-        ticketOwnership,
-        feedbackFunction,
-      }
+      { pokeTraces, feedback, ticketOwnership, feedbackFunction }
     ]
   } else {
+    const t: ticket<string> =
+      Option.unopt(Tezos.create_ticket("can_poke", ticketCount));
     return [
       list([]) as list<operation>,
-      {
-        feedback,
-        pokeTraces,
-        ticketOwnership: Map.add(
-          a,
-          Tezos.create_ticket("can_poke", ticketCount),
-          ticketOwnership
-        ),
-        feedbackFunction,
-      }
+      { pokeTraces, feedback, ticketOwnership: Map.add(a, t, ticketOwnership) ,feedbackFunction}
     ]
   }
 };
@@ -316,8 +243,8 @@ Time to compile and play with the CLI
 > Note : check that Docker is running
 
 ```bash
-yarn install
-taq compile pokeGame.jsligo
+npm i
+TAQ_LIGO_IMAGE=ligolang/ligo:0.65.0 taq compile pokeGame.jsligo
 ```
 
 Redeploy to testnet
@@ -327,11 +254,11 @@ taq deploy pokeGame.tz -e testing
 ```
 
 ```logs
-┌─────────────┬──────────────────────────────────────┬──────────┬──────────────────┬─────────────────────────────────────┐
-│ Contract    │ Address                              │ Alias    │ Balance In Mutez │ Destination                         │
-├─────────────┼──────────────────────────────────────┼──────────┼──────────────────┼─────────────────────────────────────┤
-│ pokeGame.tz │ KT1FwYoUNAZVhf8Bct4qcAzs78A9SjBspfYy │ pokeGame │ 0                │ https://ghostnet.tezos.marigold.dev │
-└─────────────┴──────────────────────────────────────┴──────────┴──────────────────┴─────────────────────────────────────┘
+┌─────────────┬──────────────────────────────────────┬──────────┬──────────────────┬────────────────────────────────┐
+│ Contract    │ Address                              │ Alias    │ Balance In Mutez │ Destination                    │
+├─────────────┼──────────────────────────────────────┼──────────┼──────────────────┼────────────────────────────────┤
+│ pokeGame.tz │ KT1EsaXY2FhFu4TSUWX5PNLHc3Eq4FzEVHQG │ pokeGame │ 0                │ https://ghostnet.ecadinfra.com │
+└─────────────┴──────────────────────────────────────┴──────────┴──────────────────┴────────────────────────────────┘
 ```
 
 Time to go on the dapp to test
@@ -355,7 +282,7 @@ Run the user sequence on the web page :
 
 Now, we update the lambda function in background with the CLI with our new admin entrypoint. We return a fixed string this time, just for demo purpose and verify that the lambda executed is returning another output
 
-Edit the file pokeGame.parameters.jsligo
+Edit the file `pokeGame.parameterList.jsligo`
 
 ```ligolang
 #include "pokeGame.jsligo"
@@ -365,7 +292,7 @@ const default_parameter = UpdateFeedbackFunction((_oracleAddress : address) : st
 Compile all and call an init transaction
 
 ```bash
-taq compile pokeGame.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.65.0 taq compile pokeGame.jsligo
 taq call pokeGame --param pokeGame.parameter.default_parameter.tz -e testing
 ```
 

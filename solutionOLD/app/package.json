@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@airgap/beacon-sdk": "^4.0.0",
+    "@airgap/beacon-sdk": "^3.3.0",
     "@dipdup/tzkt-api": "^0.0.1",
-    "@taquito/beacon-wallet": "^16.1.1",
-    "@taquito/taquito": "^16.1.1",
+    "@taquito/beacon-wallet": "^14.1.0",
+    "@taquito/taquito": "^14.1.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^13.0.0",
     "@testing-library/user-event": "^13.2.1",
@@ -21,7 +21,7 @@
     "web-vitals": "^2.1.0"
   },
   "scripts": {
-    "start": "jq -r '\"REACT_APP_CONTRACT_ADDRESS=\" + last(.tasks[]).output[0].address' ../.taq/testing-state.json > .env && react-app-rewired start",
+    "start": "jq -r -f filter.jq ../.taq/testing-state.json > .env && react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-app-rewired eject"
@@ -45,7 +45,7 @@
     ]
   },
   "devDependencies": {
-    "@airgap/beacon-types": "^4.0.0",
+    "@airgap/beacon-types": "^3.3.0",
     "assert": "^2.0.0",
     "crypto-browserify": "^3.12.0",
     "https-browserify": "^1.0.0",
