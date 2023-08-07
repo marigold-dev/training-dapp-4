@@ -1,0 +1,130 @@
+type callContract = {
+  entrypointName: string,
+  payload: bytes
+};
+
+type entrypointType = {
+  method: string,
+  addr: address
+};
+
+type entrypointOperation = {
+  name: string,
+  isRemoved: bool,
+  entrypoint: option<entrypointType>
+};
+
+type changeVersion = {
+  oldAddr: address,
+  newAddr: address
+};
+
+type storage = {
+  governance: address, //admins
+  entrypoints: big_map<string, entrypointType> //interface schema map
+};
+
+type _return = [list<operation>, storage];
+
+@entry
+const callContract = (param : callContract , store : storage) : _return => {
+ return match(Big_map.find_opt(param.entrypointName, store.entrypoints), {
+    None: () => failwith("No entrypoint found"),
+    Some: (entry: entrypointType) =>
+      match(
+        Tezos.get_contract_opt(entry.addr) as option<contract<callContract>>,
+        {
+          None: () => failwith("No contract found at this address"),
+          Some: (contract) => [
+            list([
+              Tezos.transaction(
+                { entrypointName: entry.method, payload: param.payload },
+                Tezos.get_amount(),
+                contract
+              )
+            ]) as list<operation>,
+            store
+          ]
+        }
+      ),
+  });
+};
+
+@entry 
+const upgrade =  (param : [list<entrypointOperation>, option<changeVersion>] , store : storage) : _return => {
+  if (Tezos.get_sender() != store.governance) {
+    return failwith("Permission denied");
+  }
+
+  let [upgraded_ep_list, changeVersionOpt] = param;
+
+  const update_storage = (l : list<entrypointOperation>, m: big_map<string, entrypointType> ): big_map<string, entrypointType> => {
+    return match(
+      l,
+      list([
+        ([]) => m,
+        ([x, ...xs]) => {
+          let b: big_map<string, entrypointType> = match(x.entrypoint, {
+            None: () => {
+              if (x.isRemoved == true) {
+                return Big_map.remove(x.name, m);
+              } else {
+                return m;
+              }
+            }, //mean to remove or unchanged
+            Some: (_ep: entrypointType) => {
+              //means to add new or unchanged
+              if (x.isRemoved == false) {
+                return match(x.entrypoint, {
+                  None: () => m,
+                  Some: (c: entrypointType) =>
+                    Big_map.update(x.name, Some(c), m),
+                });
+              } else {
+                return m;
+              }
+            },
+          });
+          return update_storage(xs, b);
+        }
+      ])
+    );
+  };
+
+  //update the entrpoint interface map
+  const new_entrypoints: big_map<string, entrypointType> = update_storage(
+    upgraded_ep_list,
+    store.entrypoints
+  );
+
+  //check if version needs to be changed
+  return match(changeVersionOpt, {
+    None: () => [
+      list([]) as list<operation>,
+      { ...store, entrypoints: new_entrypoints }
+    ],
+    Some: (change) => {
+      let op_change: operation = match(
+        Tezos.get_contract_opt(change.oldAddr) as option<
+          contract<callContract>
+        >,
+        {
+          None: () => failwith("No contract found at this address"),
+          Some: (contract) => {
+            let amt = Tezos.get_amount();
+            let payload: address = change.newAddr;
+            return Tezos.transaction(
+              { entrypointName: "changeVersion", payload: Bytes.pack(payload) },
+              amt,
+              contract
+            );
+          },
+        }
+      );
+      return [
+        list([op_change]) as list<operation>,
+        { ...store, entrypoints: new_entrypoints }
+      ];
+    },
+  });
+};

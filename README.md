@@ -5,6 +5,7 @@ description: Training n°4 for decentralized application
 ---
 
 ## :round_pushpin: [See Github version and full code here](https://github.com/marigold-dev/training-dapp-4)
+
 # Training dapp n°4
 
 # :point_up: Upgradable Poke game
@@ -127,8 +128,8 @@ Let's do minor changes as you have 1 additional field `feedbackFunction` on stor
 Edit the `PokeAndGetFeedback` function where we execute the lambda `feedbackFunction(..)`
 
 ```ligolang
-/* @no_mutation */
-/* @entry */
+@no_mutation
+@entry
 const pokeAndGetFeedback = (oracleAddress: address, store: storage): return_ => {
   const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
   const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
@@ -164,7 +165,7 @@ On a first time we will inject the old code to check all still works and then we
 To modify the lambda function code we need an extra admin entrypoint `updateFeedbackFunction`
 
 ```ligolang
-/* @entry */
+@entry
 const updateFeedbackFunction = (newCode: feedbackFunction, store: storage): return_ => {
   const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
   return [
@@ -177,7 +178,7 @@ const updateFeedbackFunction = (newCode: feedbackFunction, store: storage): retu
 As we broke the storage definition earlier, fix all storage field missing warnings on `poke` and `init` functions
 
 ```ligolang
-/* @entry */
+@entry
 const poke = (_: parameter, store: storage): return_ => {
   const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
   const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
@@ -208,7 +209,7 @@ const poke = (_: parameter, store: storage): return_ => {
   )
 };
 
-/* @entry */
+@entry
 const init = ([a, ticketCount]: [address, nat], store: storage): return_ => {
   const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
   if (ticketCount == (0 as nat)) {
@@ -245,7 +246,7 @@ Time to compile and play with the CLI
 
 ```bash
 npm i
-TAQ_LIGO_IMAGE=ligolang/ligo:0.65.0 taq compile pokeGame.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile pokeGame.jsligo
 ```
 
 Redeploy to testnet
@@ -269,7 +270,7 @@ Regenerate types and run the frontend
 ```bash
 taq generate types ./app/src
 cd app
-yarn run start
+yarn dev
 ```
 
 Run the user sequence on the web page :
@@ -293,7 +294,7 @@ const default_parameter = UpdateFeedbackFunction((_oracleAddress : address) : st
 Compile all and call an init transaction
 
 ```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:0.65.0 taq compile pokeGame.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile pokeGame.jsligo
 taq call pokeGame --param pokeGame.parameter.default_parameter.tz -e testing
 ```
 
@@ -431,12 +432,9 @@ In a way, we break a bit compiler checks, but if we code well and cast stuff as 
 Fix all missing field tzip18 on storage structure in the file
 
 ```ligolang
-const poke = ([pokeTraces, feedback, ticketOwnership, tzip18]: [
-  map<address, pokeMessage>,
-  string,
-  map<address, ticket<string>>,
-  TZIP18.tzip18
-]): return_ => {
+@entry
+const poke = (_: parameter, store: storage): return_ => {
+   const { pokeTraces, feedback, ticketOwnership, tzip18 } = store;
   //extract opt ticket from map
   const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
     Map.get_and_update(
@@ -464,20 +462,10 @@ const poke = ([pokeTraces, feedback, ticketOwnership, tzip18]: [
   });
 };
 
-// @no_mutation
-const pokeAndGetFeedback = ([
-  oracleAddress,
-  pokeTraces,
-  feedback,
-  ticketOwnership,
-  tzip18
-]: [
-  address,
-  map<address, pokeMessage>,
-  string,
-  map<address, ticket<string>>,
-  TZIP18.tzip18
-]): return_ => {
+@no_mutation
+@entry
+const pokeAndGetFeedback = (oracleAddress: address, store: storage): return_ => {
+  const { pokeTraces, feedback, ticketOwnership , tzip18} = store;
   //extract opt ticket from map
   const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
     Map.get_and_update(
@@ -522,14 +510,9 @@ const pokeAndGetFeedback = ([
   });
 };
 
-const init = ([a, ticketCount, pokeTraces, feedback, ticketOwnership, tzip18]: [
-  address,
-  nat,
-  map<address, pokeMessage>,
-  string,
-  map<address, ticket<string>>,
-  TZIP18.tzip18
-]): return_ => {
+@entry
+const init = ([a, ticketCount]: [address, nat], store: storage): return_ => {
+  const { pokeTraces, feedback, ticketOwnership, tzip18 } = store;
   return ticketCount == (0 as nat)
     ? [
         list([]) as list<operation>,
@@ -547,27 +530,28 @@ const init = ([a, ticketCount, pokeTraces, feedback, ticketOwnership, tzip18]: [
           pokeTraces,
           ticketOwnership: Map.add(
             a,
-            Tezos.create_ticket("can_poke", ticketCount),
+            Option.unopt(Tezos.create_ticket("can_poke", ticketCount)),
             ticketOwnership
           ),
           tzip18,
         }
       ]
 };
+
 ```
 
 - The view call signature is different :
   - it returns an optional bytes
   - calling "getView" generic view exposed by the proxy
-  - passing the viewname "feedback" (to disptach to the correct function once you reach the code that will be executed)
+  - passing the viewname "feedback" (to dispatch to the correct function once you reach the code that will be executed)
   - finally, unpack the bytes result and cast it to string
 
-Rewrite the main function now
+As we are doing generic calls, we have to reuse a dispatch function and not use @entry, rewrite main function now
 
 ```ligolang
 export const main = ([action, store]: [parameter, storage]): return_ => {
   //destructure the storage to avoid DUP
-  let { pokeTraces, feedback, ticketOwnership, tzip18 } = store;
+  const { pokeTraces, feedback, ticketOwnership, tzip18 } = store;
 
   const canBeCalled: bool = match(tzip18.contractNext, {
     None: () => false, // I am the last version, but I cannot be called directly (or is my proxy, see later)
@@ -585,15 +569,15 @@ export const main = ([action, store]: [parameter, storage]): return_ => {
     return failwith("Only the proxy or contractNext can call this contract");};
 
   if (action.entrypointName == "Poke") {
-    return poke([pokeTraces, feedback, ticketOwnership, tzip18]);
+    return poke(action,[pokeTraces, feedback, ticketOwnership, tzip18]);
   } else {
     if (action.entrypointName == "PokeAndGetFeedback") {
       return match(Bytes.unpack(action.payload) as option<address>, {
         None: () =>
           failwith("Cannot find the address parameter for PokeAndGetFeedback"),
         Some: (other: address) =>
-          pokeAndGetFeedback([
-            other,
+          pokeAndGetFeedback(other,[
+
             pokeTraces,
             feedback,
             ticketOwnership,
@@ -606,9 +590,8 @@ export const main = ([action, store]: [parameter, storage]): return_ => {
           None: () =>
             failwith("Cannot find the address parameter for changeVersion"),
           Some: (initParam: [address, nat]) =>
-            init([
-              initParam[0],
-              initParam[1],
+            init([initParam[0],
+              initParam[1]],[
               pokeTraces,
               feedback,
               ticketOwnership,
@@ -621,8 +604,7 @@ export const main = ([action, store]: [parameter, storage]): return_ => {
             None: () =>
               failwith("Cannot find the address parameter for changeVersion"),
             Some: (other: address) =>
-              changeVersion([
-                other,
+              changeVersion(other,[
                 pokeTraces,
                 feedback,
                 ticketOwnership,
@@ -648,14 +630,13 @@ Add the last missing function changing the version of this contract and make it 
 /**
  * Function called by a parent contract or administrator to set the current version on an old contract
  **/
-const changeVersion = ([
-  newAddress,
+const changeVersion = ( newAddress : address , [
+
   pokeTraces,
   feedback,
   ticketOwnership,
   tzip18
 ]: [
-  address,
   map<address, pokeMessage>,
   string,
   map<address, ticket<string>>,
@@ -676,7 +657,7 @@ const changeVersion = ([
 Finally, change the view to a generic one and do a `if...else` on `viewName` argument
 
 ```ligolang
-// @view
+@view
 const getView = ([viewName, store]: [string, storage]): bytes => {
   if (viewName == "feedback") {
     return Bytes.pack(store.feedback);
@@ -706,7 +687,7 @@ const default_storage = {
 Compile
 
 ```bash
-taq compile pokeGame.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile pokeGame.jsligo
 ```
 
 All good :ok_hand:
@@ -726,10 +707,6 @@ type storage = {
   governance: address, //admins
   entrypoints: big_map<string, entrypointType> //interface schema map
 };
-
-type parameter =
-  | ["Call", callContract]
-  | ["Upgrade", list<entrypointOperation>, option<changeVersion>];
 
 type _return = [list<operation>, storage];
 ```
@@ -771,30 +748,20 @@ type changeVersion = {
 - entrypointOperation : change the entrypoint interface map (new state of the map)
 - changeVersion : change the smartcontract version (old/new addresses)
 
-Add the main function (pretty simple) at the end of the file (as always)
-
-```ligolang
-const main = ([p, s]: [parameter, storage]): _return => {
-  return match(p, {
-    Call: (p: parameter) => callContract(p, s),
-    Upgrade: (p: parameter) => upgrade(p, s),
-  });
-};
-```
-
 Add the `Call`entrypoint (simple forward). (Before main function)
 
 ```ligolang
 // the proxy function
-const callContract = ([param, storage]: [callContract, storage]): _return => {
-  return match(Big_map.find_opt(param.entrypointName, storage.entrypoints), {
+@entry
+const callContract = (param : callContract , store : storage) : _return => {
+ return match(Big_map.find_opt(param.entrypointName, store.entrypoints), {
     None: () => failwith("No entrypoint found"),
     Some: (entry: entrypointType) =>
       match(
         Tezos.get_contract_opt(entry.addr) as option<contract<callContract>>,
         {
           None: () => failwith("No contract found at this address"),
-          Some: (contract: contract) => [
+          Some: (contract) => [
             list([
               Tezos.transaction(
                 { entrypointName: entry.method, payload: param.payload },
@@ -802,7 +769,7 @@ const callContract = ([param, storage]: [callContract, storage]): _return => {
                 contract
               )
             ]) as list<operation>,
-            storage
+            store
           ]
         }
       ),
@@ -818,25 +785,20 @@ Then, write the `upgrade` entrypoint. (Before main function)
 /**
  * Function for administrators to update entrypoints and change current contract version
  **/
-const upgrade = ([param, s]: [
-  [list<entrypointOperation>, option<changeVersion>],
-  storage
-]): _return => {
-  if (Tezos.get_sender() != s.governance) {
+@entry
+const upgrade =  (param : [list<entrypointOperation>, option<changeVersion>] , store : storage) : _return => {
+  if (Tezos.get_sender() != store.governance) {
     return failwith("Permission denied");
   }
 
   let [upgraded_ep_list, changeVersionOpt] = param;
 
-  const update_storage = ([l, m]: [
-    list<entrypointOperation>,
-    big_map<string, entrypointType>
-  ]): big_map<string, entrypointType> => {
+  const update_storage = (l : list<entrypointOperation>, m: big_map<string, entrypointType> ): big_map<string, entrypointType> => {
     return match(
       l,
       list([
-        ([]: list<entrypointOperation>) => m,
-        ([x, ...xs]: list<entrypointOperation>) => {
+        ([]) => m,
+        ([x, ...xs]) => {
           let b: big_map<string, entrypointType> = match(x.entrypoint, {
             None: () => {
               if (x.isRemoved == true) {
@@ -867,23 +829,23 @@ const upgrade = ([param, s]: [
   //update the entrpoint interface map
   const new_entrypoints: big_map<string, entrypointType> = update_storage(
     upgraded_ep_list,
-    s.entrypoints
+    store.entrypoints
   );
 
   //check if version needs to be changed
   return match(changeVersionOpt, {
     None: () => [
       list([]) as list<operation>,
-      { ...s, entrypoints: new_entrypoints }
+      { ...store, entrypoints: new_entrypoints }
     ],
-    Some: (change: changeVersion) => {
+    Some: (change) => {
       let op_change: operation = match(
         Tezos.get_contract_opt(change.oldAddr) as option<
           contract<callContract>
         >,
         {
           None: () => failwith("No contract found at this address"),
-          Some: (contract: contract) => {
+          Some: (contract) => {
             let amt = Tezos.get_amount();
             let payload: address = change.newAddr;
             return Tezos.transaction(
@@ -896,7 +858,7 @@ const upgrade = ([param, s]: [
       );
       return [
         list([op_change]) as list<operation>,
-        { ...s, entrypoints: new_entrypoints }
+        { ...store, entrypoints: new_entrypoints }
       ];
     },
   });
@@ -927,18 +889,12 @@ const getView = ([viewName, store]: [string, storage]): bytes => {
 Compile
 
 ```bash
-taq compile proxy.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile proxy.jsligo
 ```
 
 #### We have all ready for deployment :rocket:
 
-First, deploy the proxy, create the initial storage for it
-
-```bash
-taq create contract proxy.storages.jsligo
-```
-
-Edit to this below (be careful to point `governance` to your taq default user account)
+Edit `proxy.storageList.jsligo` to this below ( **!!! be careful to point `governance` to your taq default user account !!!**)
 
 ```ligolang
 #include "proxy.jsligo"
@@ -951,19 +907,19 @@ const default_storage = {
 Then compile and deploy it
 
 ```bash
-taq compile proxy.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile proxy.jsligo
 taq deploy proxy.tz -e testing
 ```
 
 ```logs
-┌──────────┬──────────────────────────────────────┬───────┬──────────────────┬─────────────────────────────────────┐
-│ Contract │ Address                              │ Alias │ Balance In Mutez │ Destination                         │
-├──────────┼──────────────────────────────────────┼───────┼──────────────────┼─────────────────────────────────────┤
-│ proxy.tz │ KT1GKMcXxJCfZuYj5W6G7msabCQ6bZwpMxdw │ proxy │ 0                │ https://ghostnet.tezos.marigold.dev │
-└──────────┴──────────────────────────────────────┴───────┴──────────────────┴─────────────────────────────────────┘
+┌──────────┬──────────────────────────────────────┬───────┬──────────────────┬────────────────────────────────┐
+│ Contract │ Address                              │ Alias │ Balance In Mutez │ Destination                    │
+├──────────┼──────────────────────────────────────┼───────┼──────────────────┼────────────────────────────────┤
+│ proxy.tz │ KT1LXkvAPGEtdFNfFrTyBEySJvQnKrsPn4vD │ proxy │ 0                │ https://ghostnet.ecadinfra.com │
+└──────────┴──────────────────────────────────────┴───────┴──────────────────┴────────────────────────────────┘
 ```
 
-Keep this proxy address, as you will need to report it below on `tzip18.proxy` field :warning:
+Keep this **proxy address**, as you will need to report it below on `tzip18.proxy` field :warning:
 
 Now you can deploy a smartcontract V1. ( :warning: Change with your **proxy address** on file `pokeGame.storages.jsligo` like mine )
 
@@ -974,7 +930,7 @@ const default_storage = {
     feedback : "kiss",
     ticketOwnership : Map.empty as map<address,ticket<string>>,  //ticket of claims
     tzip18 : {
-                proxy : "KT1GKMcXxJCfZuYj5W6G7msabCQ6bZwpMxdw" as address,
+                proxy : "KT1LXkvAPGEtdFNfFrTyBEySJvQnKrsPn4vD" as address,
                 version : 1 as nat,
                 contractPrevious : None() as option<address>,
                 contractNext : None() as option<address>
@@ -983,26 +939,20 @@ const default_storage = {
 ```
 
 ```bash
-taq compile pokeGame.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile pokeGame.jsligo
 taq deploy pokeGame.tz -e testing
 ```
 
 ```logs
-┌─────────────┬──────────────────────────────────────┬──────────┬──────────────────┬─────────────────────────────────────┐
-│ Contract    │ Address                              │ Alias    │ Balance In Mutez │ Destination                         │
-├─────────────┼──────────────────────────────────────┼──────────┼──────────────────┼─────────────────────────────────────┤
-│ pokeGame.tz │ KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk │ pokeGame │ 0                │ https://ghostnet.tezos.marigold.dev │
-└─────────────┴──────────────────────────────────────┴──────────┴──────────────────┴─────────────────────────────────────┘
+┌─────────────┬──────────────────────────────────────┬──────────┬──────────────────┬────────────────────────────────┐
+│ Contract    │ Address                              │ Alias    │ Balance In Mutez │ Destination                    │
+├─────────────┼──────────────────────────────────────┼──────────┼──────────────────┼────────────────────────────────┤
+│ pokeGame.tz │ KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd │ pokeGame │ 0                │ https://ghostnet.ecadinfra.com │
+└─────────────┴──────────────────────────────────────┴──────────┴──────────────────┴────────────────────────────────┘
 ```
 
 Let's tell the proxy that there is a first contract deployed with some interface.
-Create a parameter file (:warning: Change with your smart contract address on each command line with `addr` below :warning:)
-
-```bash
-taq create contract proxy.parameters.jsligo
-```
-
-Edit it
+Edit the parameter file `proxy.parameterList.jsligo` (:warning: Change with your smart contract address on each command line with `addr` below :warning:)
 
 ```ligolang
 #include "proxy.jsligo"
@@ -1013,23 +963,23 @@ const initProxyWithV1 = Upgrade(
       name : "Poke",
       isRemoved  : false,
       entrypoint : Some({method : "Poke",
-                        addr : "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" as address })},
+                        addr : "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address })},
     {
       name : "PokeAndGetFeedback",
       isRemoved  : false,
-      entrypoint : Some({method : "PokeAndGetFeedback", addr : "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" as address })},
+      entrypoint : Some({method : "PokeAndGetFeedback", addr : "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address })},
     {
       name : "Init",
       isRemoved  : false,
-      entrypoint : Some({method : "Init", addr : "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" as address })},
+      entrypoint : Some({method : "Init", addr : "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address })},
     {
       name : "changeVersion",
       isRemoved  : false,
-      entrypoint : Some({method : "changeVersion", addr : "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" as address })},
+      entrypoint : Some({method : "changeVersion", addr : "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address })},
     {
       name : "feedback",
       isRemoved  : false,
-      entrypoint : Some({method : "feedback", addr : "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" as address})}
+      entrypoint : Some({method : "feedback", addr : "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address})}
     ]) as list<entrypointOperation>,
     None() as option<changeVersion>
   ]);
@@ -1038,8 +988,8 @@ const initProxyWithV1 = Upgrade(
 Compile & Call it
 
 ```bash
-taq compile proxy.jsligo
-taq call proxy --param proxy.parameter.initProxyWithV1.tz -e testing
+TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile proxy.jsligo
+taq call proxy --param proxy.default_storage.tz -e testing
 ```
 
 output :
@@ -1048,14 +998,14 @@ output :
 ┌────────────────┬──────────────────────────────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────────┬────────────┬────────────────┬─────────────────────────────────────┐
 │ Contract Alias │ Contract Address                     │ Parameter                                                                                              │ Entrypoint │ Mutez Transfer │ Destination                         │
 ├────────────────┼──────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────┼────────────────┼─────────────────────────────────────┤
-│ proxy          │ KT1GKMcXxJCfZuYj5W6G7msabCQ6bZwpMxdw │ (Right                                                                                                 │ default    │ 0              │ https://ghostnet.tezos.marigold.dev │
-│                │                                      │    (Pair { Pair (Pair (Some (Pair "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" "Poke")) False) "Poke" ;      │            │                │                                     │
-│                │                                      │            Pair (Pair (Some (Pair "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" "PokeAndGetFeedback")) False) │            │                │                                     │
+│ proxy          │ KT1LXkvAPGEtdFNfFrTyBEySJvQnKrsPn4vD │ (Right                                                                                                 │ default    │ 0              │ https://ghostnet.tezos.marigold.dev │
+│                │                                      │    (Pair { Pair (Pair (Some (Pair "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" "Poke")) False) "Poke" ;      │            │                │                                     │
+│                │                                      │            Pair (Pair (Some (Pair "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" "PokeAndGetFeedback")) False) │            │                │                                     │
 │                │                                      │                 "PokeAndGetFeedback" ;                                                                 │            │                │                                     │
-│                │                                      │            Pair (Pair (Some (Pair "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" "Init")) False) "Init" ;      │            │                │                                     │
-│                │                                      │            Pair (Pair (Some (Pair "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" "changeVersion")) False)      │            │                │                                     │
+│                │                                      │            Pair (Pair (Some (Pair "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" "Init")) False) "Init" ;      │            │                │                                     │
+│                │                                      │            Pair (Pair (Some (Pair "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" "changeVersion")) False)      │            │                │                                     │
 │                │                                      │                 "changeVersion" ;                                                                      │            │                │                                     │
-│                │                                      │            Pair (Pair (Some (Pair "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" "feedback")) False)           │            │                │                                     │
+│                │                                      │            Pair (Pair (Some (Pair "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" "feedback")) False)           │            │                │                                     │
 │                │                                      │                 "feedback" }                                                                           │            │                │                                     │
 │                │                                      │          None))                                                                                        │            │                │                                     │
 │                │                                      │                                                                                                        │            │                │                                     │
@@ -1067,85 +1017,66 @@ output :
 Go on frontend side, recompile all and generate typescript classes
 
 ```bash
-taq compile pokeGame.jsligo
-taq compile proxy.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile pokeGame.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile proxy.jsligo
 taq generate types ./app/src
 ```
-
-> Note : don't forget to export Storage type like in previous training
 
 Change the script to extract the proxy address instead of the contract one, edit `package.json` and replace the line of script by
 
 ```json
-    "start": "jq -r -f filter.jq ../.taq/testing-state.json > .env && react-app-rewired start",
+    "dev": "jq -r -f filter.jq ../.taq/testing-state.json > .env && vite",
 ```
 
-where you created a new file `filter.jq` with content `"REACT_APP_CONTRACT_ADDRESS=" + last(.tasks[] | select(.task == "deploy" and .output[0].contract == "proxy.tz").output[0].address)`
+where you created a new file `filter.jq` with content
 
-Edit ./app/App.tsx and change the contract address, display, etc ...
+```bash
+echo '"VITE_CONTRACT_ADDRESS=" + last(.tasks[] | select(.task == "deploy" and .output[0].contract == "proxy.tz").output[0].address)' > ./app/filter.jq
+```
+
+Edit `./app/App.tsx` and change the contract address, display, etc ...
 
 ```typescript
 import { NetworkType } from "@airgap/beacon-types";
-import { Contract, ContractsService } from "@dipdup/tzkt-api";
 import { BeaconWallet } from "@taquito/beacon-wallet";
 import { PackDataResponse } from "@taquito/rpc";
 import { MichelCodecPacker, TezosToolkit } from "@taquito/taquito";
+import * as api from "@tzkt/sdk-api";
 import { useEffect, useState } from "react";
 import "./App.css";
 import ConnectButton from "./ConnectWallet";
 import DisconnectButton from "./DisconnectWallet";
 import {
-  PokeGameWalletType,
   Storage as ContractStorage,
+  PokeGameWalletType,
 } from "./pokeGame.types";
-import { ProxyWalletType, Storage as ProxyStorage } from "./proxy.types";
+import { Storage as ProxyStorage, ProxyWalletType } from "./proxy.types";
 import { address, bytes } from "./type-aliases";
 
 function App() {
-  const [Tezos, setTezos] = useState<TezosToolkit>(
-    new TezosToolkit("https://ghostnet.tezos.marigold.dev")
-  );
-  const [wallet, setWallet] = useState<BeaconWallet>(
-    new BeaconWallet({
-      name: "Training",
-      preferredNetwork: NetworkType.GHOSTNET,
-    })
-  );
+  api.defaults.baseUrl = "https://api.ghostnet.tzkt.io";
 
-  useEffect(() => {
-    Tezos.setWalletProvider(wallet);
-    (async () => {
-      const activeAccount = await wallet.client.getActiveAccount();
-      if (activeAccount) {
-        setUserAddress(activeAccount.address);
-        const balance = await Tezos.tz.getBalance(activeAccount.address);
-        setUserBalance(balance.toNumber());
-      }
-    })();
-  }, [wallet]);
-  const [userAddress, setUserAddress] = useState<string>("");
-  const [userBalance, setUserBalance] = useState<number>(0);
-
-  const [contractToPoke, setContractToPoke] = useState<string>("");
-
-  //tzkt
-  const contractsService = new ContractsService({
-    baseUrl: "https://api.ghostnet.tzkt.io",
-    version: "",
-    withCredentials: false,
+  const Tezos = new TezosToolkit("https://ghostnet.tezos.marigold.dev");
+  const wallet = new BeaconWallet({
+    name: "Training",
+    preferredNetwork: NetworkType.GHOSTNET,
   });
-  const [contracts, setContracts] = useState<Array<Contract>>([]);
+  Tezos.setWalletProvider(wallet);
+
+  const [contracts, setContracts] = useState<Array<api.Contract>>([]);
   const [contractStorages, setContractStorages] = useState<
     Map<string, ProxyStorage & ContractStorage>
   >(new Map());
 
   const fetchContracts = () => {
     (async () => {
-      const tzktcontracts: Array<Contract> = await contractsService.getSimilar({
-        address: process.env["REACT_APP_CONTRACT_ADDRESS"]!,
-        includeStorage: true,
-        sort: { desc: "id" },
-      });
+      const tzktcontracts: Array<api.Contract> = await api.contractsGetSimilar(
+        import.meta.env.VITE_CONTRACT_ADDRESS,
+        {
+          includeStorage: true,
+          sort: { desc: "id" },
+        }
+      );
       setContracts(tzktcontracts);
       const taquitoContracts: Array<ProxyWalletType> = await Promise.all(
         tzktcontracts.map(
@@ -1187,10 +1118,24 @@ function App() {
     })();
   };
 
+  useEffect(() => {
+    (async () => {
+      const activeAccount = await wallet.client.getActiveAccount();
+      if (activeAccount) {
+        setUserAddress(activeAccount.address);
+        const balance = await Tezos.tz.getBalance(activeAccount.address);
+        setUserBalance(balance.toNumber());
+      }
+    })();
+  }, []);
+
+  const [userAddress, setUserAddress] = useState<string>("");
+  const [userBalance, setUserBalance] = useState<number>(0);
+  const [contractToPoke, setContractToPoke] = useState<string>("");
   //poke
   const poke = async (
     e: React.MouseEvent<HTMLButtonElement>,
-    contract: Contract
+    contract: api.Contract
   ) => {
     e.preventDefault();
     let c: ProxyWalletType = await Tezos.wallet.at("" + contract.address);
@@ -1205,7 +1150,7 @@ function App() {
       console.log("packed", contractToPokeBytes.packed);
 
       const op = await c.methods
-        .call("PokeAndGetFeedback", contractToPokeBytes.packed as bytes)
+        .callContract("PokeAndGetFeedback", contractToPokeBytes.packed as bytes)
         .send();
       await op.confirmation();
       alert("Tx done");
@@ -1218,7 +1163,7 @@ function App() {
   //mint
   const mint = async (
     e: React.MouseEvent<HTMLButtonElement>,
-    contract: Contract
+    contract: api.Contract
   ) => {
     e.preventDefault();
     let c: ProxyWalletType = await Tezos.wallet.at("" + contract.address);
@@ -1229,7 +1174,9 @@ function App() {
         data: { prim: "Pair", args: [{ string: userAddress }, { int: "1" }] },
         type: { prim: "Pair", args: [{ prim: "address" }, { prim: "nat" }] },
       });
-      const op = await c.methods.call("Init", initBytes.packed as bytes).send();
+      const op = await c.methods
+        .callContract("Init", initBytes.packed as bytes)
+        .send();
       await op.confirmation();
       alert("Tx done");
     } catch (error: any) {
@@ -1326,7 +1273,7 @@ Lets' run the frontend locally
 
 ```bash
 cd app
-yarn run start
+yarn dev
 ```
 
 You can do all the same actions as before through the proxy.
@@ -1343,10 +1290,10 @@ You can do all the same actions as before through the proxy.
 
 Let's deploy a new contract V2 and test it again.
 
-> Note : Remember that we cannot change the storage.feedback field on any deployed smartcontract bacause we never exposed a method to update it.
+> Note : Remember that we cannot change the `storage.feedback` field on any deployed smartcontract bacause we never exposed a method to update it.
 > Let's change this value for the new contract instance, and call it `hello`
 
-Edit `pokeGame.storages.jsligo` and add a new variable on it. Don't forget again to change `proxy` and `contractPrevious` by our own values !!!
+Edit `pokeGame.storageList.jsligo` and add a new variable on it. Don't forget again to change `proxy` and `contractPrevious` by our own values !!!
 
 ```ligolang
 const storageV2 = {
@@ -1354,10 +1301,10 @@ const storageV2 = {
   feedback: "hello",
   ticketOwnership: Map.empty as map<address, ticket<string>>,
   tzip18: {
-    proxy: "KT1GKMcXxJCfZuYj5W6G7msabCQ6bZwpMxdw" as address,
+    proxy: "KT1LXkvAPGEtdFNfFrTyBEySJvQnKrsPn4vD" as address,
     version: 2 as nat,
     contractPrevious: Some(
-      "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" as address
+      "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address
     ) as option<address>,
     contractNext: None() as option<address>,
   },
@@ -1365,20 +1312,20 @@ const storageV2 = {
 ```
 
 ```bash
-taq compile pokeGame.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile pokeGame.jsligo
 taq deploy pokeGame.tz -e testing --storage pokeGame.storage.storageV2.tz
 ```
 
 ```logs
-┌─────────────┬──────────────────────────────────────┬──────────┬──────────────────┬─────────────────────────────────────┐
-│ Contract    │ Address                              │ Alias    │ Balance In Mutez │ Destination                         │
-├─────────────┼──────────────────────────────────────┼──────────┼──────────────────┼─────────────────────────────────────┤
-│ pokeGame.tz │ KT1U7Xi5ZEBRS4GqYwqPwyb19XLkA1jx2sNU │ pokeGame │ 0                │ https://ghostnet.tezos.marigold.dev │
-└─────────────┴──────────────────────────────────────┴──────────┴──────────────────┴─────────────────────────────────────┘
+┌─────────────┬──────────────────────────────────────┬──────────┬──────────────────┬────────────────────────────────┐
+│ Contract    │ Address                              │ Alias    │ Balance In Mutez │ Destination                    │
+├─────────────┼──────────────────────────────────────┼──────────┼──────────────────┼────────────────────────────────┤
+│ pokeGame.tz │ KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP │ pokeGame │ 0                │ https://ghostnet.ecadinfra.com │
+└─────────────┴──────────────────────────────────────┴──────────┴──────────────────┴────────────────────────────────┘
 ```
 
 Tell our proxy than we have new entrypoints to the V2 and remove the ones from V1.
-Add a new parameter variable on `proxy.parameters.jsligo`. Don't forget to change the `addr` values with the new contract address just above !!!
+Add a new parameter variable on `proxy.parameterList.jsligo`. Don't forget to change the `addr` values with the new contract address just above !!!
 
 ```ligolang
   const initProxyWithV2 = Upgrade([
@@ -1388,7 +1335,7 @@ Add a new parameter variable on `proxy.parameters.jsligo`. Don't forget to chang
       isRemoved: false,
       entrypoint: Some({
         method: "Poke",
-        addr: "KT1U7Xi5ZEBRS4GqYwqPwyb19XLkA1jx2sNU" as address,
+        addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
       }),
     },
     {
@@ -1396,7 +1343,7 @@ Add a new parameter variable on `proxy.parameters.jsligo`. Don't forget to chang
       isRemoved: false,
       entrypoint: Some({
         method: "PokeAndGetFeedback",
-        addr: "KT1U7Xi5ZEBRS4GqYwqPwyb19XLkA1jx2sNU" as address,
+        addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
       }),
     },
     {
@@ -1404,7 +1351,7 @@ Add a new parameter variable on `proxy.parameters.jsligo`. Don't forget to chang
       isRemoved: false,
       entrypoint: Some({
         method: "Init",
-        addr: "KT1U7Xi5ZEBRS4GqYwqPwyb19XLkA1jx2sNU" as address,
+        addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
       }),
     },
     {
@@ -1412,7 +1359,7 @@ Add a new parameter variable on `proxy.parameters.jsligo`. Don't forget to chang
       isRemoved: false,
       entrypoint: Some({
         method: "changeVersion",
-        addr: "KT1U7Xi5ZEBRS4GqYwqPwyb19XLkA1jx2sNU" as address,
+        addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
       }),
     },
     {
@@ -1420,7 +1367,7 @@ Add a new parameter variable on `proxy.parameters.jsligo`. Don't forget to chang
       isRemoved: false,
       entrypoint: Some({
         method: "feedback",
-        addr: "KT1U7Xi5ZEBRS4GqYwqPwyb19XLkA1jx2sNU" as address,
+        addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
       }),
     }
   ]) as list<entrypointOperation>,
@@ -1431,7 +1378,7 @@ Add a new parameter variable on `proxy.parameters.jsligo`. Don't forget to chang
 Call the proxy to do the changes
 
 ```bash
-taq compile proxy.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile proxy.jsligo
 taq call proxy --param proxy.parameter.initProxyWithV2.tz -e testing
 ```
 
@@ -1450,24 +1397,24 @@ Now, your proxy is calling the contract V2 and should return `hello` on the trac
 
 > Note : we could have do it in one row in a single transaction as all operations are done in sequence on the operation array
 
-Add a new parameter on `proxy.parameters.jsligo` to force change of version on old contract (:warning: replace below with your own addresses for V1 ad V2)
+Add a new parameter on `proxy.parameterList.jsligo` to force change of version on old contract (:warning: replace below with your own addresses for V1 ad V2)
 
 ```ligolang
 const changeVersionV1ToV2 = Upgrade([
   list([]) as list<entrypointOperation>,
   Some({
-    oldAddr: "KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk" as address,
-    newAddr: "KT1U7Xi5ZEBRS4GqYwqPwyb19XLkA1jx2sNU" as address,
+    oldAddr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address,
+    newAddr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
   }) as option<changeVersion>
 ]);
 ```
 
 ```bash
-taq compile proxy.jsligo
-taq call proxy --param proxy.parameter.changeVersionV1ToV2.tz -e testing
+TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile proxy.jsligo
+taq call proxy --param proxy.parameterList.changeVersionV1ToV2.tz -e testing
 ```
 
-Check on an indexer that the V1 storage.tzip18.contractNext is pointing to the next version address V2 : [https://ghostnet.tzkt.io/KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk/storage/](https://ghostnet.tzkt.io/KT1JTyesGDhyLEwVKA2mRJxmo2GiXSpcHYEk/storage/)
+Check on an indexer that the V1 storage.tzip18.contractNext is pointing to the next version address V2 : [https://ghostnet.tzkt.io/KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd/storage/](https://ghostnet.tzkt.io/KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd/storage/)
 
 :tada: This ends the proxy pattern implementation. Your old contract is no more "runnable" and your proxy is pointing to the last version
 

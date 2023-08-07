@@ -1,2 +1,5 @@
 #include "pokeGame.jsligo"
-const default_parameter = UpdateFeedbackFunction((_oracleAddress : address) : string => "YEAH!!!");
+
+// Define your parameter values as a list of LIGO variable definitions
+// E.g. const aParameterValue : aParameterType = (Increment (1));
+

@@ -1,28 +1,85 @@
 import { NetworkType } from "@airgap/beacon-types";
-import { Contract, ContractsService } from "@dipdup/tzkt-api";
 import { BeaconWallet } from "@taquito/beacon-wallet";
-import { TezosToolkit } from "@taquito/taquito";
-import { BigNumber } from "bignumber.js";
+import { PackDataResponse } from "@taquito/rpc";
+import { MichelCodecPacker, TezosToolkit } from "@taquito/taquito";
+import * as api from "@tzkt/sdk-api";
 import { useEffect, useState } from "react";
 import "./App.css";
 import ConnectButton from "./ConnectWallet";
 import DisconnectButton from "./DisconnectWallet";
-import { PokeGameWalletType, Storage } from "./pokeGame.types";
-import { address, nat } from "./type-aliases";
+import {
+  Storage as ContractStorage,
+  PokeGameWalletType,
+} from "./pokeGame.types";
+import { Storage as ProxyStorage, ProxyWalletType } from "./proxy.types";
+import { address, bytes } from "./type-aliases";
 
 function App() {
-  const [Tezos, setTezos] = useState<TezosToolkit>(
-    new TezosToolkit("https://ghostnet.tezos.marigold.dev")
-  );
-  const [wallet, setWallet] = useState<BeaconWallet>(
-    new BeaconWallet({
-      name: "Training",
-      preferredNetwork: NetworkType.GHOSTNET,
-    })
-  );
+  api.defaults.baseUrl = "https://api.ghostnet.tzkt.io";
+
+  const Tezos = new TezosToolkit("https://ghostnet.tezos.marigold.dev");
+  const wallet = new BeaconWallet({
+    name: "Training",
+    preferredNetwork: NetworkType.GHOSTNET,
+  });
+  Tezos.setWalletProvider(wallet);
+
+  const [contracts, setContracts] = useState<Array<api.Contract>>([]);
+  const [contractStorages, setContractStorages] = useState<
+    Map<string, ProxyStorage & ContractStorage>
+  >(new Map());
+
+  const fetchContracts = () => {
+    (async () => {
+      const tzktcontracts: Array<api.Contract> = await api.contractsGetSimilar(
+        import.meta.env.VITE_CONTRACT_ADDRESS,
+        {
+          includeStorage: true,
+          sort: { desc: "id" },
+        }
+      );
+      setContracts(tzktcontracts);
+      const taquitoContracts: Array<ProxyWalletType> = await Promise.all(
+        tzktcontracts.map(
+          async (tzktcontract) =>
+            (await Tezos.wallet.at(tzktcontract.address!)) as ProxyWalletType
+        )
+      );
+      const map = new Map<string, ProxyStorage & ContractStorage>();
+      for (const c of taquitoContracts) {
+        const s: ProxyStorage = await c.storage();
+        try {
+          let firstEp: { addr: address; method: string } | undefined =
+            await s.entrypoints.get("Poke");
+
+          if (firstEp) {
+            let underlyingContract: PokeGameWalletType = await Tezos.wallet.at(
+              "" + firstEp!.addr
+            );
+            map.set(c.address, {
+              ...s,
+              ...(await underlyingContract.storage()),
+            });
+          } else {
+            console.log(
+              "proxy is not well configured ... for contract " + c.address
+            );
+            continue;
+          }
+        } catch (error) {
+          console.log(error);
+          console.log(
+            "final contract is not well configured ... for contract " +
+              c.address
+          );
+        }
+      }
+      console.log("map", map);
+      setContractStorages(map);
+    })();
+  };
 
   useEffect(() => {
-    Tezos.setWalletProvider(wallet);
     (async () => {
       const activeAccount = await wallet.client.getActiveAccount();
       if (activeAccount) {
@@ -31,59 +88,30 @@ function App() {
         setUserBalance(balance.toNumber());
       }
     })();
-  }, [wallet]);
+  }, []);
 
   const [userAddress, setUserAddress] = useState<string>("");
   const [userBalance, setUserBalance] = useState<number>(0);
-
   const [contractToPoke, setContractToPoke] = useState<string>("");
-
-  //tzkt
-  const contractsService = new ContractsService({
-    baseUrl: "https://api.ghostnet.tzkt.io",
-    version: "",
-    withCredentials: false,
-  });
-  const [contracts, setContracts] = useState<Array<Contract>>([]);
-  const [contractStorages, setContractStorages] = useState<
-    Map<string, Storage>
-  >(new Map());
-
-  const fetchContracts = () => {
-    (async () => {
-      const tzktcontracts: Array<Contract> = await contractsService.getSimilar({
-        address: process.env["REACT_APP_CONTRACT_ADDRESS"]!,
-        includeStorage: true,
-        sort: { desc: "id" },
-      });
-      setContracts(tzktcontracts);
-      const taquitoContracts: Array<PokeGameWalletType> = await Promise.all(
-        tzktcontracts.map(
-          async (tzktcontract) =>
-            (await Tezos.wallet.at(tzktcontract.address!)) as PokeGameWalletType
-        )
-      );
-      const map = new Map<string, Storage>();
-      for (const c of taquitoContracts) {
-        const s: Storage = await c.storage();
-        map.set(c.address, s);
-      }
-      setContractStorages(map);
-    })();
-  };
-
   //poke
   const poke = async (
     e: React.MouseEvent<HTMLButtonElement>,
-    contract: Contract
+    contract: api.Contract
   ) => {
     e.preventDefault();
-    let c: PokeGameWalletType = await Tezos.wallet.at("" + contract.address);
+    let c: ProxyWalletType = await Tezos.wallet.at("" + contract.address);
     try {
       console.log("contractToPoke", contractToPoke);
-      c.storage();
+
+      const p = new MichelCodecPacker();
+      let contractToPokeBytes: PackDataResponse = await p.packData({
+        data: { string: contractToPoke },
+        type: { prim: "address" },
+      });
+      console.log("packed", contractToPokeBytes.packed);
+
       const op = await c.methods
-        .pokeAndGetFeedback(contractToPoke as address)
+        .callContract("PokeAndGetFeedback", contractToPokeBytes.packed as bytes)
         .send();
       await op.confirmation();
       alert("Tx done");
@@ -96,14 +124,19 @@ function App() {
   //mint
   const mint = async (
     e: React.MouseEvent<HTMLButtonElement>,
-    contract: Contract
+    contract: api.Contract
   ) => {
     e.preventDefault();
-    let c: PokeGameWalletType = await Tezos.wallet.at("" + contract.address);
+    let c: ProxyWalletType = await Tezos.wallet.at("" + contract.address);
     try {
       console.log("contractToPoke", contractToPoke);
+      const p = new MichelCodecPacker();
+      let initBytes: PackDataResponse = await p.packData({
+        data: { prim: "Pair", args: [{ string: userAddress }, { int: "1" }] },
+        type: { prim: "Pair", args: [{ prim: "address" }, { prim: "nat" }] },
+      });
       const op = await c.methods
-        .init(userAddress as address, new BigNumber(1) as nat)
+        .callContract("Init", initBytes.packed as bytes)
         .send();
       await op.confirmation();
       alert("Tx done");
