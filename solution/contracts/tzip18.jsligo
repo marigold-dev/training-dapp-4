@@ -1,4 +1,5 @@
 // Tzip 18 types
+
 export type tzip18 = {
   proxy: address,
   version: nat,

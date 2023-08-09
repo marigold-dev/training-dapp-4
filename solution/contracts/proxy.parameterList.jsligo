@@ -1,84 +1,145 @@
-#include "proxy.jsligo"
-const initProxyWithV1 = Upgrade(
-  [
-    list([
-    {
-      name : "Poke",
-      isRemoved  : false,
-      entrypoint : Some({method : "Poke",
-                        addr : "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address })},
-    {
-      name : "PokeAndGetFeedback",
-      isRemoved  : false,
-      entrypoint : Some({method : "PokeAndGetFeedback", addr : "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address })},
-    {
-      name : "Init",
-      isRemoved  : false,
-      entrypoint : Some({method : "Init", addr : "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address })},
-    {
-      name : "changeVersion",
-      isRemoved  : false,
-      entrypoint : Some({method : "changeVersion", addr : "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address })},
-    {
-      name : "feedback",
-      isRemoved  : false,
-      entrypoint : Some({method : "feedback", addr : "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address})}
-    ]) as list<entrypointOperation>,
-    None() as option<changeVersion>
-  ]);
+#import "proxy.jsligo" "Proxy"
+const initProxyWithV1: parameter_of Proxy =
+    Upgrade(
+        [
+            list(
+                [
+                    {
+                        name: "Poke",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "Poke",
+                                addr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "PokeAndGetFeedback",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "PokeAndGetFeedback",
+                                addr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "Init",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "Init",
+                                addr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "changeVersion",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "changeVersion",
+                                addr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "feedback",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "feedback",
+                                addr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as
+                                    address
+                            }
+                        )
+                    }
+                ]
+            ) as list<Proxy.entrypointOperation>,
+            None() as option<Proxy.changeVersion>
+        ]
+    );
 
+const initProxyWithV2: parameter_of Proxy =
+    Upgrade(
+        [
+            list(
+                [
+                    {
+                        name: "Poke",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "Poke",
+                                addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "PokeAndGetFeedback",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "PokeAndGetFeedback",
+                                addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "Init",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "Init",
+                                addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "changeVersion",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "changeVersion",
+                                addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "feedback",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "feedback",
+                                addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as
+                                    address
+                            }
+                        )
+                    }
+                ]
+            ) as list<Proxy.entrypointOperation>,
+            None() as option<Proxy.changeVersion>
+        ]
+    );
 
-    const initProxyWithV2 = Upgrade([
-  list([
-    {
-      name: "Poke",
-      isRemoved: false,
-      entrypoint: Some({
-        method: "Poke",
-        addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
-      }),
-    },
-    {
-      name: "PokeAndGetFeedback",
-      isRemoved: false,
-      entrypoint: Some({
-        method: "PokeAndGetFeedback",
-        addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
-      }),
-    },
-    {
-      name: "Init",
-      isRemoved: false,
-      entrypoint: Some({
-        method: "Init",
-        addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
-      }),
-    },
-    {
-      name: "changeVersion",
-      isRemoved: false,
-      entrypoint: Some({
-        method: "changeVersion",
-        addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
-      }),
-    },
-    {
-      name: "feedback",
-      isRemoved: false,
-      entrypoint: Some({
-        method: "feedback",
-        addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
-      }),
-    }
-  ]) as list<entrypointOperation>,
-  None() as option<changeVersion>
-]);
-
-
-const changeVersionV1ToV2 = Upgrade([
-  list([]) as list<entrypointOperation>,
-  Some({
-    oldAddr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address,
-    newAddr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
-  }) as option<changeVersion>
-]);
+const changeVersionV1ToV2: parameter_of Proxy =
+    Upgrade(
+        [
+            list([]) as list<Proxy.entrypointOperation>,
+            Some(
+                {
+                    oldAddr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address,
+                    newAddr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address
+                }
+            ) as option<Proxy.changeVersion>
+        ]
+    );

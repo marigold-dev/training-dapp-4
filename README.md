@@ -287,8 +287,8 @@ Now, we update the lambda function in background with the CLI with our new admin
 Edit the file `pokeGame.parameterList.jsligo`
 
 ```ligolang
-#include "pokeGame.jsligo"
-const default_parameter = UpdateFeedbackFunction((_oracleAddress : address) : string => "YEAH!!!");
+#import "pokeGame.jsligo" "PokeGame"
+const default_parameter : parameter_of PokeGame = UpdateFeedbackFunction((_oracleAddress : address) : string => "YEAH!!!");
 ```
 
 Compile all and call an init transaction
@@ -376,7 +376,7 @@ sequenceDiagram
 #### Rewrite your smart contract to make it generic
 
 - Rename your file `pokeGame.jsligo` to `pokeGameLambda.jsligo` (to save it somewhere and watch it later if needed ...)
-- Remove pokeGame.parameters.jsligo
+- Remove pokeGame.parameterList.jsligo
 
 Get back the original version of `pokeGame.jsligo` from previous training (again, it will be easier to start from here)
 
@@ -714,9 +714,11 @@ type _return = [list<operation>, storage];
 - storage :
   - holds a /or several admin
   - the interface schema map for all underlying entrypoints
-- parameter :
-  - call : forward any request to the right underlying entrypoint
-  - upgrade : admin endpoint to update the interface schema map or change smartcontract version
+
+> Note on parameters : we use @entry syntax, parameters will be 2 functions
+>
+> - call : forward any request to the right underlying entrypoint
+> - upgrade : admin endpoint to update the interface schema map or change smartcontract version
 
 Add our missing types juste above
 
@@ -955,34 +957,72 @@ Let's tell the proxy that there is a first contract deployed with some interface
 Edit the parameter file `proxy.parameterList.jsligo` (:warning: Change with your smart contract address on each command line with `addr` below :warning:)
 
 ```ligolang
-#include "proxy.jsligo"
-const initProxyWithV1 = Upgrade(
-  [
-    list([
-    {
-      name : "Poke",
-      isRemoved  : false,
-      entrypoint : Some({method : "Poke",
-                        addr : "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address })},
-    {
-      name : "PokeAndGetFeedback",
-      isRemoved  : false,
-      entrypoint : Some({method : "PokeAndGetFeedback", addr : "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address })},
-    {
-      name : "Init",
-      isRemoved  : false,
-      entrypoint : Some({method : "Init", addr : "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address })},
-    {
-      name : "changeVersion",
-      isRemoved  : false,
-      entrypoint : Some({method : "changeVersion", addr : "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address })},
-    {
-      name : "feedback",
-      isRemoved  : false,
-      entrypoint : Some({method : "feedback", addr : "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address})}
-    ]) as list<entrypointOperation>,
-    None() as option<changeVersion>
-  ]);
+#import "proxy.jsligo" "Proxy"
+const initProxyWithV1: parameter_of Proxy =
+    Upgrade(
+        [
+            list(
+                [
+                    {
+                        name: "Poke",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "Poke",
+                                addr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "PokeAndGetFeedback",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "PokeAndGetFeedback",
+                                addr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "Init",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "Init",
+                                addr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "changeVersion",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "changeVersion",
+                                addr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "feedback",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "feedback",
+                                addr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as
+                                    address
+                            }
+                        )
+                    }
+                ]
+            ) as list<Proxy.entrypointOperation>,
+            None() as option<Proxy.changeVersion>
+        ]
+    );
 ```
 
 Compile & Call it
@@ -1328,51 +1368,138 @@ Tell our proxy than we have new entrypoints to the V2 and remove the ones from V
 Add a new parameter variable on `proxy.parameterList.jsligo`. Don't forget to change the `addr` values with the new contract address just above !!!
 
 ```ligolang
-  const initProxyWithV2 = Upgrade([
-  list([
-    {
-      name: "Poke",
-      isRemoved: false,
-      entrypoint: Some({
-        method: "Poke",
-        addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
-      }),
-    },
-    {
-      name: "PokeAndGetFeedback",
-      isRemoved: false,
-      entrypoint: Some({
-        method: "PokeAndGetFeedback",
-        addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
-      }),
-    },
-    {
-      name: "Init",
-      isRemoved: false,
-      entrypoint: Some({
-        method: "Init",
-        addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
-      }),
-    },
-    {
-      name: "changeVersion",
-      isRemoved: false,
-      entrypoint: Some({
-        method: "changeVersion",
-        addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
-      }),
-    },
-    {
-      name: "feedback",
-      isRemoved: false,
-      entrypoint: Some({
-        method: "feedback",
-        addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
-      }),
-    }
-  ]) as list<entrypointOperation>,
-  None() as option<changeVersion>
-]);
+#import "proxy.jsligo" "Proxy"
+const initProxyWithV1: parameter_of Proxy =
+    Upgrade(
+        [
+            list(
+                [
+                    {
+                        name: "Poke",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "Poke",
+                                addr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "PokeAndGetFeedback",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "PokeAndGetFeedback",
+                                addr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "Init",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "Init",
+                                addr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "changeVersion",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "changeVersion",
+                                addr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "feedback",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "feedback",
+                                addr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as
+                                    address
+                            }
+                        )
+                    }
+                ]
+            ) as list<Proxy.entrypointOperation>,
+            None() as option<Proxy.changeVersion>
+        ]
+    );
+
+const initProxyWithV2: parameter_of Proxy =
+    Upgrade(
+        [
+            list(
+                [
+                    {
+                        name: "Poke",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "Poke",
+                                addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "PokeAndGetFeedback",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "PokeAndGetFeedback",
+                                addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "Init",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "Init",
+                                addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "changeVersion",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "changeVersion",
+                                addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "feedback",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "feedback",
+                                addr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as
+                                    address
+                            }
+                        )
+                    }
+                ]
+            ) as list<Proxy.entrypointOperation>,
+            None() as option<Proxy.changeVersion>
+        ]
+    );
 ```
 
 Call the proxy to do the changes
@@ -1400,13 +1527,18 @@ Now, your proxy is calling the contract V2 and should return `hello` on the trac
 Add a new parameter on `proxy.parameterList.jsligo` to force change of version on old contract (:warning: replace below with your own addresses for V1 ad V2)
 
 ```ligolang
-const changeVersionV1ToV2 = Upgrade([
-  list([]) as list<entrypointOperation>,
-  Some({
-    oldAddr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address,
-    newAddr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address,
-  }) as option<changeVersion>
-]);
+const changeVersionV1ToV2: parameter_of Proxy =
+    Upgrade(
+        [
+            list([]) as list<Proxy.entrypointOperation>,
+            Some(
+                {
+                    oldAddr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address,
+                    newAddr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address
+                }
+            ) as option<Proxy.changeVersion>
+        ]
+    );
 ```
 
 ```bash
