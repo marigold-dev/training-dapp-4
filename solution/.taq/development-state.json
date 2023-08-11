@@ -56,63 +56,6 @@
                 }
             ]
         },
-        "@taqueria/plugin-ligo.compile.1691416044573": {
-            "task": "compile",
-            "plugin": "@taqueria/plugin-ligo",
-            "time": 1691416044573,
-            "output": [
-                {
-                    "contract": "proxy.jsligo",
-                    "artifact": "artifacts/proxy.tz"
-                },
-                {
-                    "contract": "proxy.storageList.jsligo",
-                    "artifact": "artifacts/proxy.default_storage.tz\n"
-                },
-                {
-                    "contract": "proxy.parameterList.jsligo",
-                    "artifact": ""
-                }
-            ]
-        },
-        "@taqueria/plugin-ligo.compile.1691416168211": {
-            "task": "compile",
-            "plugin": "@taqueria/plugin-ligo",
-            "time": 1691416168211,
-            "output": [
-                {
-                    "contract": "proxy.jsligo",
-                    "artifact": "artifacts/proxy.tz"
-                },
-                {
-                    "contract": "proxy.storageList.jsligo",
-                    "artifact": "artifacts/proxy.default_storage.tz\n"
-                },
-                {
-                    "contract": "proxy.parameterList.jsligo",
-                    "artifact": ""
-                }
-            ]
-        },
-        "@taqueria/plugin-ligo.compile.1691416171741": {
-            "task": "compile",
-            "plugin": "@taqueria/plugin-ligo",
-            "time": 1691416171741,
-            "output": [
-                {
-                    "contract": "pokeGame.jsligo",
-                    "artifact": "artifacts/pokeGame.tz"
-                },
-                {
-                    "contract": "pokeGame.storageList.jsligo",
-                    "artifact": "artifacts/pokeGame.default_storage.tz\n"
-                },
-                {
-                    "contract": "pokeGame.parameterList.jsligo",
-                    "artifact": "No parameter expressions found\n"
-                }
-            ]
-        },
         "@taqueria/plugin-ligo.compile.1691417387724": {
             "task": "compile",
             "plugin": "@taqueria/plugin-ligo",
@@ -148,6 +91,55 @@
                 {
                     "contract": "proxy.parameterList.jsligo",
                     "artifact": ""
+                }
+            ]
+        },
+        "@taqueria/plugin-ligo.compile.1691764048195": {
+            "task": "compile",
+            "plugin": "@taqueria/plugin-ligo",
+            "time": 1691764048195,
+            "output": [
+                {
+                    "contract": "proxy.jsligo",
+                    "artifact": "artifacts/proxy.tz"
+                },
+                {
+                    "contract": "proxy.storageList.jsligo",
+                    "artifact": "artifacts/proxy.default_storage.tz\n"
+                },
+                {
+                    "contract": "proxy.parameterList.jsligo",
+                    "artifact": ""
+                }
+            ]
+        },
+        "@taqueria/plugin-ligo.compile.1691764068045": {
+            "task": "compile",
+            "plugin": "@taqueria/plugin-ligo",
+            "time": 1691764068045,
+            "output": [
+                {
+                    "contract": "pokeGameLambda.jsligo",
+                    "artifact": "artifacts/pokeGameLambda.tz"
+                }
+            ]
+        },
+        "@taqueria/plugin-ligo.compile.1691764160054": {
+            "task": "compile",
+            "plugin": "@taqueria/plugin-ligo",
+            "time": 1691764160054,
+            "output": [
+                {
+                    "contract": "pokeGameLambda.jsligo",
+                    "artifact": "artifacts/pokeGameLambda.tz"
+                },
+                {
+                    "contract": "pokeGameLambda.storageList.jsligo",
+                    "artifact": "No storage expressions found\n"
+                },
+                {
+                    "contract": "pokeGameLambda.parameterList.jsligo",
+                    "artifact": "No parameter expressions found\n"
                 }
             ]
         }

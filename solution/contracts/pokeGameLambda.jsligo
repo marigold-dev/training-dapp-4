@@ -113,6 +113,7 @@ const feedback = ([_, store]: [unit, storage]): string => {
 const updateFeedbackFunction = (newCode: feedbackFunction, store: storage)
   : return_ => {
   const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
+  ignore(feedbackFunction);
   return [
     list([]),
     { pokeTraces, feedback, ticketOwnership, feedbackFunction: newCode }

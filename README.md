@@ -168,6 +168,7 @@ To modify the lambda function code we need an extra admin entrypoint `updateFeed
 @entry
 const updateFeedbackFunction = (newCode: feedbackFunction, store: storage): return_ => {
   const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
+  ignore(feedbackFunction);
   return [
   list([]),
   { pokeTraces, feedback, ticketOwnership, feedbackFunction: newCode }
@@ -1542,7 +1543,7 @@ const changeVersionV1ToV2: parameter_of Proxy =
 ```
 
 ```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile proxy.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.71.1 taq compile proxy.jsligo
 taq call proxy --param proxy.parameterList.changeVersionV1ToV2.tz -e testing
 ```
 
