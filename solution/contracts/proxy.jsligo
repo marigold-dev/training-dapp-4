@@ -21,7 +21,11 @@ type changeVersion = {
 
 type storage = {
   governance: address, //admins
-  entrypoints: big_map<string, entrypointType> //interface schema map
+  entrypoints: big_map<
+    string,
+    entrypointType
+  > //interface schema map
+
 };
 
 type _return = [list<operation>, storage];
