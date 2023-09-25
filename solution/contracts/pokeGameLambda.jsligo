@@ -1,7 +1,4 @@
-type pokeMessage = {
-  receiver: address,
-  feedback: string
-};
+export type pokeMessage = { receiver: address, feedback: string };
 
 export type feedbackFunction = (oracleAddress: address) => string;
 
@@ -29,26 +26,24 @@ const poke = (_: parameter, store: storage): return_ => {
       None() as option<ticket<string>>,
       ticketOwnership
     );
-  return match(
-    t,
-    {
-      None: () => failwith("User does not have tickets => not allowed"),
-      Some: (_t: ticket<string>) =>
-        [
-          list([]) as list<operation>,
-          {
-            feedback,
-            pokeTraces: Map.add(
-              Tezos.get_source(),
-              { receiver: Tezos.get_self_address(), feedback: "" },
-              pokeTraces
-            ),
-            ticketOwnership: tom,
-            feedbackFunction
-          }
-        ]
-    }
-  )
+  return match(t) {
+    when (None):
+      failwith("User does not have tickets => not allowed")
+    when (Some(_t)):
+      [
+        list([]) as list<operation>,
+        {
+          feedback,
+          pokeTraces: Map.add(
+            Tezos.get_source(),
+            { receiver: Tezos.get_self_address(), feedback: "" },
+            pokeTraces
+          ),
+          ticketOwnership: tom,
+          feedbackFunction
+        }
+      ]
+  }
 };
 
 @entry
@@ -84,34 +79,31 @@ const pokeAndGetFeedback = (oracleAddress: address, store: storage): return_ => 
       None() as option<ticket<string>>,
       ticketOwnership
     );
-  let feedbackMessage =
-    { receiver: oracleAddress, feedback: feedbackFunction(oracleAddress) };
-  return match(
-    t,
-    {
-      None: () => failwith("User does not have tickets => not allowed"),
-      Some: (_t: ticket<string>) =>
-        [
-          list([]) as list<operation>,
-          {
-            feedback,
-            pokeTraces: Map.add(Tezos.get_source(), feedbackMessage, pokeTraces),
-            ticketOwnership: tom,
-            feedbackFunction
-          }
-        ]
-    }
-  )
+  let feedbackMessage = {
+    receiver: oracleAddress,
+    feedback: feedbackFunction(oracleAddress)
+  };
+  return match(t) {
+    when (None):
+      failwith("User does not have tickets => not allowed")
+    when (Some(_t)):
+      [
+        list([]) as list<operation>,
+        {
+          feedback,
+          pokeTraces: Map.add(Tezos.get_source(), feedbackMessage, pokeTraces),
+          ticketOwnership: tom,
+          feedbackFunction
+        }
+      ]
+  }
 };
 
 @view
-const feedback = ([_, store]: [unit, storage]): string => {
-  return store.feedback
-};
+const feedback = (_: unit, store: storage): string => { return store.feedback };
 
 @entry
-const updateFeedbackFunction = (newCode: feedbackFunction, store: storage)
-  : return_ => {
+const updateFeedbackFunction = (newCode: feedbackFunction, store: storage): return_ => {
   const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
   ignore(feedbackFunction);
   return [

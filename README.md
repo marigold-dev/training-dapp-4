@@ -247,7 +247,7 @@ Time to compile and play with the CLI
 
 ```bash
 npm i
-TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile pokeGame.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.73.0 taq compile pokeGame.jsligo
 ```
 
 Redeploy to testnet
@@ -295,7 +295,7 @@ const default_parameter : parameter_of PokeGame = UpdateFeedbackFunction((_oracl
 Compile all and call an init transaction
 
 ```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile pokeGame.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.73.0 taq compile pokeGame.jsligo
 taq call pokeGame --param pokeGame.parameter.default_parameter.tz -e testing
 ```
 
@@ -688,7 +688,7 @@ const default_storage = {
 Compile
 
 ```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile pokeGame.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.73.0 taq compile pokeGame.jsligo
 ```
 
 All good :ok_hand:
@@ -892,7 +892,7 @@ const getView = ([viewName, store]: [string, storage]): bytes => {
 Compile
 
 ```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile proxy.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.73.0 taq compile proxy.jsligo
 ```
 
 #### We have all ready for deployment :rocket:
@@ -910,7 +910,7 @@ const default_storage = {
 Then compile and deploy it
 
 ```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile proxy.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.73.0 taq compile proxy.jsligo
 taq deploy proxy.tz -e testing
 ```
 
@@ -942,7 +942,7 @@ const default_storage = {
 ```
 
 ```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile pokeGame.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.73.0 taq compile pokeGame.jsligo
 taq deploy pokeGame.tz -e testing
 ```
 
@@ -1029,7 +1029,7 @@ const initProxyWithV1: parameter_of Proxy =
 Compile & Call it
 
 ```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile proxy.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.73.0 taq compile proxy.jsligo
 taq call proxy --param proxy.default_storage.tz -e testing
 ```
 
@@ -1058,8 +1058,8 @@ output :
 Go on frontend side, recompile all and generate typescript classes
 
 ```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile pokeGame.jsligo
-TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile proxy.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.73.0 taq compile pokeGame.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.73.0 taq compile proxy.jsligo
 taq generate types ./app/src
 ```
 
@@ -1353,7 +1353,7 @@ const storageV2 = {
 ```
 
 ```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile pokeGame.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.73.0 taq compile pokeGame.jsligo
 taq deploy pokeGame.tz -e testing --storage pokeGame.storage.storageV2.tz
 ```
 
@@ -1506,7 +1506,7 @@ const initProxyWithV2: parameter_of Proxy =
 Call the proxy to do the changes
 
 ```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:0.71.0 taq compile proxy.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.73.0 taq compile proxy.jsligo
 taq call proxy --param proxy.parameter.initProxyWithV2.tz -e testing
 ```
 
@@ -1543,7 +1543,7 @@ const changeVersionV1ToV2: parameter_of Proxy =
 ```
 
 ```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:0.71.1 taq compile proxy.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:0.73.0 taq compile proxy.jsligo
 taq call proxy --param proxy.parameterList.changeVersionV1ToV2.tz -e testing
 ```
 

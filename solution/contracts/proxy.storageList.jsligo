@@ -1,11 +1,11 @@
-#include "proxy.jsligo"
-const default_storage =
-    {
-        governance: "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb" as address, //admins
-        entrypoints: Big_map.empty as
-            big_map<
-                string,
-                entrypointType
-            > //interface schema map
+#import "proxy.jsligo" "Contract"
 
-    };
+const default_storage = {
+    governance: "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb" as address, //admins
+    entrypoints: Big_map.empty as
+        big_map<
+            string,
+            Contract.entrypointType
+        > //interface schema map
+
+};
