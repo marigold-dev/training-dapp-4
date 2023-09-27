@@ -36,7 +36,7 @@ const poke = (
       ticketOwnership
     );
   return match(t) {
-    when (None):
+    when (None()):
       failwith("User does not have tickets => not allowed")
     when (Some(_t)):
       [
@@ -80,7 +80,7 @@ const pokeAndGetFeedback = (
   let feedbackOpt: option<bytes> =
     Tezos.call_view("getView", "feedback", oracleAddress);
   return match(t) {
-    when (None):
+    when (None()):
       failwith("User does not have tickets => not allowed")
     when (Some(_t)):
       match(feedbackOpt) {
@@ -104,7 +104,7 @@ const pokeAndGetFeedback = (
               }
             ]
           }
-        when (None):
+        when (None()):
           failwith("Cannot find view feedback on given oracle address")
       }
   };
@@ -175,7 +175,7 @@ export const main = (action: parameter, store: storage): return_ => {
   const { pokeTraces, feedback, ticketOwnership, tzip18 } = store;
   const canBeCalled: bool =
     match(tzip18.contractNext) {
-      when (None):
+      when (None()):
         false // I am the last version, but I cannot be called directly (or is my proxy, see later)
 
       when (Some(contract)):
@@ -197,7 +197,7 @@ export const main = (action: parameter, store: storage): return_ => {
   } else {
     if (action.entrypointName == "PokeAndGetFeedback") {
       return match(Bytes.unpack(action.payload) as option<address>) {
-        when (None):
+        when (None()):
           failwith("Cannot find the address parameter for PokeAndGetFeedback")
         when (Some(other)):
           pokeAndGetFeedback(
@@ -208,7 +208,7 @@ export const main = (action: parameter, store: storage): return_ => {
     } else {
       if (action.entrypointName == "Init") {
         return match(Bytes.unpack(action.payload) as option<[address, nat]>) {
-          when (None):
+          when (None()):
             failwith("Cannot find the address parameter for changeVersion")
           when (Some(initParam)):
             init(
@@ -219,7 +219,7 @@ export const main = (action: parameter, store: storage): return_ => {
       } else {
         if (action.entrypointName == "changeVersion") {
           return match(Bytes.unpack(action.payload) as option<address>) {
-            when (None):
+            when (None()):
               failwith("Cannot find the address parameter for changeVersion")
             when (Some(other)):
               changeVersion(

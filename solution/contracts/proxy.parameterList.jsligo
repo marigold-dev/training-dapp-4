@@ -1,5 +1,6 @@
-#import "proxy.jsligo" "Proxy"
-const initProxyWithV1: parameter_of Proxy =
+#import "proxy.jsligo" "Contract"
+
+const initProxyWithV1: parameter_of Contract =
     Upgrade(
         [
             list(
@@ -60,12 +61,12 @@ const initProxyWithV1: parameter_of Proxy =
                         )
                     }
                 ]
-            ) as list<Proxy.entrypointOperation>,
-            None() as option<Proxy.changeVersion>
+            ) as list<Contract.entrypointOperation>,
+            None() as option<Contract.changeVersion>
         ]
     );
 
-const initProxyWithV2: parameter_of Proxy =
+const initProxyWithV2: parameter_of Contract =
     Upgrade(
         [
             list(
@@ -126,20 +127,20 @@ const initProxyWithV2: parameter_of Proxy =
                         )
                     }
                 ]
-            ) as list<Proxy.entrypointOperation>,
-            None() as option<Proxy.changeVersion>
+            ) as list<Contract.entrypointOperation>,
+            None() as option<Contract.changeVersion>
         ]
     );
 
-const changeVersionV1ToV2: parameter_of Proxy =
+const changeVersionV1ToV2: parameter_of Contract =
     Upgrade(
         [
-            list([]) as list<Proxy.entrypointOperation>,
+            list([]) as list<Contract.entrypointOperation>,
             Some(
                 {
                     oldAddr: "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address,
                     newAddr: "KT1LFgAvH983cEV7KeYKoFm7XwXi2LrMv5HP" as address
                 }
-            ) as option<Proxy.changeVersion>
+            ) as option<Contract.changeVersion>
         ]
     );
