@@ -1,28 +1,27 @@
-#include "pokeGame.jsligo"
-const default_storage =
-    {
-        pokeTraces: Map.empty as map<address, pokeMessage>,
-        feedback: "kiss",
-        ticketOwnership: Map.empty as map<address, ticket<string>>, //ticket of claims
-        tzip18: {
-            proxy: "KT1LXkvAPGEtdFNfFrTyBEySJvQnKrsPn4vD" as address,
-            version: 1 as nat,
-            contractPrevious: None() as option<address>,
-            contractNext: None() as option<address>
-        }
-    };
+#import "pokeGame.jsligo" "Contract"
 
-const storageV2 =
-    {
-        pokeTraces: Map.empty as map<address, pokeMessage>,
-        feedback: "hello",
-        ticketOwnership: Map.empty as map<address, ticket<string>>,
-        tzip18: {
-            proxy: "KT1LXkvAPGEtdFNfFrTyBEySJvQnKrsPn4vD" as address,
-            version: 2 as nat,
-            contractPrevious: Some(
-                "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address
-            ) as option<address>,
-            contractNext: None() as option<address>
-        }
-    };
+const default_storage = {
+    pokeTraces: Map.empty as map<address, Contract.pokeMessage>,
+    feedback: "kiss",
+    ticketOwnership: Map.empty as map<address, ticket<string>>, //ticket of claims
+    tzip18: {
+        proxy: "KT1BPoz3Yi8LPimxCiDvpmutbCNY8x3ghKyQ" as address,
+        version: 1 as nat,
+        contractPrevious: None() as option<address>,
+        contractNext: None() as option<address>
+    }
+};
+
+const storageV2 = {
+    pokeTraces: Map.empty as map<address, Contract.pokeMessage>,
+    feedback: "hello",
+    ticketOwnership: Map.empty as map<address, ticket<string>>,
+    tzip18: {
+        proxy: "KT1BPoz3Yi8LPimxCiDvpmutbCNY8x3ghKyQ" as address,
+        version: 2 as nat,
+        contractPrevious: Some(
+            "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK" as address
+        ) as option<address>,
+        contractNext: None() as option<address>,
+    },
+};

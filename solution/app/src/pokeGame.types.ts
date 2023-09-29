@@ -3,17 +3,17 @@ import { ContractAbstractionFromContractType, WalletContractAbstractionFromContr
 import { address, bytes, MMap, nat, ticket } from './type-aliases';
 
 export type Storage = {
-    feedback: string;
     pokeTraces: MMap<address, {
-        feedback: string;
         receiver: address;
+        feedback: string;
     }>;
+    feedback: string;
     ticketOwnership: MMap<address, ticket>;
     tzip18: {
-        contractNext: {Some: address} | null;
-        contractPrevious: {Some: address} | null;
         proxy: address;
         version: nat;
+        contractPrevious: {Some: address} | null;
+        contractNext: {Some: address} | null;
     };
 };
 

@@ -1,5 +1,7 @@
 #import "./pokeGame.jsligo" "PokeGame"
+
 #import "./proxy.jsligo" "Proxy"
+
 // reset state
 
 const _ = Test.reset_state(2 as nat, list([]) as list<tez>);
@@ -8,13 +10,13 @@ const admin = Test.nth_bootstrap_account(0);
 
 const sender1: address = Test.nth_bootstrap_account(1);
 
-const _ = Test.log("Sender 1 has balance : ");
+const _1 = Test.log("Sender 1 has balance : ");
 
-const _ = Test.log(Test.get_balance(sender1));
+const _2 = Test.log(Test.get_balance_of_address(sender1));
 
-const _ = Test.set_baker(admin);
+const _3 = Test.set_baker(admin);
 
-const _ = Test.set_source(admin);
+const _4 = Test.set_source(admin);
 
 const initial_tez = 0 as tez;
 
@@ -27,9 +29,8 @@ export const _testPokeGame = (
   s: address
 ): unit => {
   const contr = Test.to_contract(taddr);
-  const contrAddress = Tezos.address(contr);
   const _ = Test.log("calling _testPokeGame on proxy : ");
-  const _ = Test.log(contr);
+  const _1 = Test.log(contr);
   Test.set_source(s);
   const status =
     Test.transfer_to_contract(
@@ -47,48 +48,40 @@ const testSender1Poke =
     (): unit => {
       /***PROXY **/
 
-      const _ = Test.set_source(admin);
-      const proxy_initial_storage =
-        {
-          governance: admin, //admins
-          entrypoints: Big_map.empty as
-            big_map<
-              string,
-              Proxy.entrypointType
-            > //interface schema map
+      Test.
+      set_source(admin);
+      const proxy_initial_storage = {
+        governance: admin, //admins
+        entrypoints: Big_map.empty as
+          big_map<
+            string,
+            Proxy.entrypointType
+          > //interface schema map
 
-        };
-      const [tProxyaddr, _, _] =
-        Test.originate_module(
-          contract_of (Proxy),
-          proxy_initial_storage,
-          initial_tez
-        );
-      const proxyContr = Test.to_contract(tProxyaddr);
+      };
+      const orig =
+        Test.originate(contract_of(Proxy), proxy_initial_storage, initial_tez);
+      const proxyContr = Test.to_contract(orig.addr);
       const proxyContrAddress = Tezos.address(proxyContr);
       /***CONTRACT **/
 
-      const _ = Test.set_source(admin);
-      const initial_storage =
-        {
-          pokeTraces: Map.empty as map<address, PokeGame.pokeMessage>,
-          feedback: "kiss",
-          ticketOwnership: Map.empty as map<address, ticket<string>>, //ticket of claims
-          tzip18: {
-            proxy: proxyContrAddress,
-            version: 1 as nat,
-            contractPrevious: None() as option<address>,
-            contractNext: None() as option<address>
-          }
-        };
-      const [addr, _, _] =
-        Test.originate_from_file(
-          "./pokeGame.jsligo",
-          "main",
-          list([]),
-          Test.eval(initial_storage),
-          initial_tez
-        );
+      Test.
+      set_source(admin);
+      const initial_storage = {
+        pokeTraces: Map.empty as map<address, PokeGame.pokeMessage>,
+        feedback: "kiss",
+        ticketOwnership: Map.empty as map<address, ticket<string>>, //ticket of claims
+        tzip18: {
+          proxy: proxyContrAddress,
+          version: 1 as nat,
+          contractPrevious: None() as option<address>,
+          contractNext: None() as option<address>
+        }
+      };
+      const origContract =
+        Test.originate(contract_of(PokeGame), initial_storage, initial_tez);
+      const contr = Test.to_contract(origContract.addr);
+      const addr = Tezos.address(contr);
       /**Upgrade proxy **/
 
       const status =
@@ -133,40 +126,37 @@ const testSender1Poke =
           0 as tez
         );
       Test.log(status);
-      const storeProxy: Proxy.storage = Test.get_storage(tProxyaddr);
+      const storeProxy: Proxy.storage =
+        Test.get_storage_of_address(proxyContrAddress);
       Test.log(storeProxy);
       /** RUN TEST*/
 
       _testPokeGame(
-        tProxyaddr,
+        orig.addr,
         "Init",
         Bytes.pack([sender1, 10 as nat]),
         sender1
       );
-      _testPokeGame(tProxyaddr, "Poke", (bytes `dummy`), sender1);
-      const taddr =
-        Test.cast_address(addr) as
-          typed_address<PokeGame.parameter, PokeGame.storage>;
-      const store: PokeGame.storage = Test.get_storage(taddr);
+      _testPokeGame(orig.addr, "Poke", (bytes `dummy`), sender1);
+      const store: PokeGame.storage = Test.get_storage_of_address(addr);
       Test.log(store);
       //check poke is registered
 
-      match(
-        Map.find_opt(sender1, store.pokeTraces),
-        {
-          Some: (pokeMessage: PokeGame.pokeMessage) => {
+      match(Map.find_opt(sender1, store.pokeTraces)) {
+        when (Some(pokeMessage)):
+          do {
             assert_with_error(
               pokeMessage.feedback == "",
-              "feedback " + pokeMessage.feedback + " is not equal to expected " +
-                "(empty)"
+              "feedback " + pokeMessage.feedback + " is not equal to expected "
+              + "(empty)"
             );
             assert_with_error(
               pokeMessage.receiver == addr,
               "receiver is not equal"
             )
-          },
-          None: () => assert_with_error(false, "don't find traces")
-        }
-      )
+          }
+        when (None()):
+          assert_with_error(false, "don't find traces")
+      }
     }
   )();
