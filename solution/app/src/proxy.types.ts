@@ -3,48 +3,48 @@ import { ContractAbstractionFromContractType, WalletContractAbstractionFromContr
 import { address, BigMap, bytes } from './type-aliases';
 
 export type Storage = {
-    entrypoints: BigMap<string, {
-        addr: address;
-        method: string;
-    }>;
     governance: address;
+    entrypoints: BigMap<string, {
+        method: string;
+        addr: address;
+    }>;
 };
 
 type Methods = {
+    upgrade: (
+        _0: Array<{
+            name: string;
+            isRemoved: boolean;
+            entrypoint: {Some: {
+                method: string;
+                addr: address;
+            }} | null;
+        }>,
+        oldAddr: address,
+        newAddr: address,
+    ) => Promise<void>;
     callContract: (
         entrypointName: string,
         payload: bytes,
     ) => Promise<void>;
-    upgrade: (
-        _0: Array<{
-            entrypoint: {Some: {
-                addr: address;
-                method: string;
-            }} | null;
-            isRemoved: boolean;
-            name: string;
-        }>,
-        newAddr: address,
-        oldAddr: address,
-    ) => Promise<void>;
 };
 
 type MethodsObject = {
+    upgrade: (params: {
+        0: Array<{
+            name: string;
+            isRemoved: boolean;
+            entrypoint: {Some: {
+                method: string;
+                addr: address;
+            }} | null;
+        }>,
+        oldAddr: address,
+        newAddr: address,
+    }) => Promise<void>;
     callContract: (params: {
         entrypointName: string,
         payload: bytes,
-    }) => Promise<void>;
-    upgrade: (params: {
-        0: Array<{
-            entrypoint: {Some: {
-                addr: address;
-                method: string;
-            }} | null;
-            isRemoved: boolean;
-            name: string;
-        }>,
-        newAddr: address,
-        oldAddr: address,
     }) => Promise<void>;
 };
 

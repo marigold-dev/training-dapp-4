@@ -1,10 +1,10 @@
 {
     "operations": {},
     "tasks": {
-        "@taqueria/plugin-tezos-client.simulate.1691393786061": {
+        "@taqueria/plugin-octez-client.simulate.1695891426476": {
             "task": "simulate",
-            "plugin": "@taqueria/plugin-tezos-client",
-            "time": 1691393786061,
+            "plugin": "@taqueria/plugin-octez-client",
+            "time": 1695891426476,
             "output": [
                 {
                     "contract": "pokeGame.tz",
@@ -12,76 +12,73 @@
                 }
             ]
         },
-        "@taqueria/plugin-ligo.test.1695646773177": {
+        "@taqueria/plugin-ligo.test.1695980691515": {
             "task": "test",
             "plugin": "@taqueria/plugin-ligo",
-            "time": 1695646773177,
+            "time": 1695980691515,
             "output": [
                 {
                     "contract": "unit_pokeGame.jsligo",
-                    "testResults": "Some tests failed :("
+                    "testResults": "\"Sender 1 has balance : \"\n3800000000000mutez\n\"*** Run test to pass ***\"\n\"contract deployed with values : \"\nKT1HeEVF74BLi3fYCpr1tpkDGmruFBNjMATo(None)\nSuccess (1858n)\n\"*** Check initial ticket is here ***\"\n{feedback = \"kiss\" ; pokeTraces = [] ; ticketOwnership = [tz1hkMbkLPkvhxyqsQoBoLPqb1mruSzZx3zy -> (KT1HeEVF74BLi3fYCpr1tpkDGmruFBNjMATo , (\"can_poke\" , 1n))]}\nSuccess (1024n)\n{feedback = \"kiss\" ; pokeTraces = [tz1hkMbkLPkvhxyqsQoBoLPqb1mruSzZx3zy -> {feedback = \"\" ; receiver = KT1HeEVF74BLi3fYCpr1tpkDGmruFBNjMATo}] ; ticketOwnership = []}\n\"*** Run test to fail ***\"\n\"contract deployed with values : \"\nKT1HDbqhYiKs8e3LkNAcT9T2MQgvUdxPtbV5(None)\nSuccess (1399n)\n\"*** Check initial ticket is here ***\"\n{feedback = \"kiss\" ; pokeTraces = [] ; ticketOwnership = []}\nFail (Rejected ((\"User does not have tickets => not allowed\" , KT1HDbqhYiKs8e3LkNAcT9T2MQgvUdxPtbV5)))\n{feedback = \"kiss\" ; pokeTraces = [] ; ticketOwnership = []}\nEverything at the top-level was executed.\n- testSender1Poke exited with value ().\n- testSender1PokeWithNoTicketsToFail exited with value ().\n\n🎉 All tests passed 🎉"
                 }
             ]
         },
-        "@taqueria/plugin-ligo.test.1695647004986": {
-            "task": "test",
-            "plugin": "@taqueria/plugin-ligo",
-            "time": 1695647004986,
-            "output": [
-                {
-                    "contract": "unit_pokeGame.jsligo",
-                    "testResults": "Some tests failed :("
-                }
-            ]
-        },
-        "@taqueria/plugin-ligo.test.1695647046376": {
-            "task": "test",
-            "plugin": "@taqueria/plugin-ligo",
-            "time": 1695647046376,
-            "output": [
-                {
-                    "contract": "unit_pokeGame.jsligo",
-                    "testResults": "\"Sender 1 has balance : \"\n3800000000000mutez\nSuccess (2796n)\n{entrypoints = [\"changeVersion\" -> {addr = KT1Q5bor5ceYD53iWnDyijQDDpmMB6ZKWi6m ; method = \"changeVersion\"} ; \"Init\" -> {addr = KT1Q5bor5ceYD53iWnDyijQDDpmMB6ZKWi6m ; method = \"Init\"} ; \"feedback\" -> {addr = KT1Q5bor5ceYD53iWnDyijQDDpmMB6ZKWi6m ; method = \"feedback\"} ; \"Poke\" -> {addr = KT1Q5bor5ceYD53iWnDyijQDDpmMB6ZKWi6m ; method = \"Poke\"} ; \"PokeAndGetFeedback\" -> {addr = KT1Q5bor5ceYD53iWnDyijQDDpmMB6ZKWi6m ; method = \"PokeAndGetFeedback\"}] ; governance = tz1MBWU1WkszFfkEER2pgn4ATKXE9ng7x1sR}\n\"calling _testPokeGame on proxy : \"\nKT1WzRJvFhPta6hfTPanKDwvkmpywom4tCZJ(None)\nSuccess (1353n)\n\"calling _testPokeGame on proxy : \"\nKT1WzRJvFhPta6hfTPanKDwvkmpywom4tCZJ(None)\nSuccess (1351n)\n{feedback = \"kiss\" ; pokeTraces = [tz1hkMbkLPkvhxyqsQoBoLPqb1mruSzZx3zy -> {feedback = \"\" ; receiver = KT1Q5bor5ceYD53iWnDyijQDDpmMB6ZKWi6m}] ; ticketOwnership = [] ; tzip18 = {contractNext = None (()) ; contractPrevious = None (()) ; proxy = KT1WzRJvFhPta6hfTPanKDwvkmpywom4tCZJ ; version = 1n}}\nEverything at the top-level was executed.\n- testSender1Poke exited with value ().\n\n🎉 All tests passed 🎉"
-                }
-            ]
-        },
-        "@taqueria/plugin-ligo.test.1695801566862": {
-            "task": "test",
-            "plugin": "@taqueria/plugin-ligo",
-            "time": 1695801566862,
-            "output": [
-                {
-                    "contract": "unit_pokeGame.jsligo",
-                    "testResults": "\"Sender 1 has balance : \"\n3800000000000mutez\nSuccess (2796n)\n{entrypoints = [\"changeVersion\" -> {addr = KT1Czn6RyfE9kJxRgMh7yiENzXE4Ga2fB5z3 ; method = \"changeVersion\"} ; \"Init\" -> {addr = KT1Czn6RyfE9kJxRgMh7yiENzXE4Ga2fB5z3 ; method = \"Init\"} ; \"feedback\" -> {addr = KT1Czn6RyfE9kJxRgMh7yiENzXE4Ga2fB5z3 ; method = \"feedback\"} ; \"Poke\" -> {addr = KT1Czn6RyfE9kJxRgMh7yiENzXE4Ga2fB5z3 ; method = \"Poke\"} ; \"PokeAndGetFeedback\" -> {addr = KT1Czn6RyfE9kJxRgMh7yiENzXE4Ga2fB5z3 ; method = \"PokeAndGetFeedback\"}] ; governance = tz1MBWU1WkszFfkEER2pgn4ATKXE9ng7x1sR}\n\"calling _testPokeGame on proxy : \"\nKT1WzRJvFhPta6hfTPanKDwvkmpywom4tCZJ(None)\nSuccess (1353n)\n\"calling _testPokeGame on proxy : \"\nKT1WzRJvFhPta6hfTPanKDwvkmpywom4tCZJ(None)\nSuccess (1351n)\n{feedback = \"kiss\" ; pokeTraces = [tz1hkMbkLPkvhxyqsQoBoLPqb1mruSzZx3zy -> {feedback = \"\" ; receiver = KT1Czn6RyfE9kJxRgMh7yiENzXE4Ga2fB5z3}] ; ticketOwnership = [] ; tzip18 = {contractNext = None (()) ; contractPrevious = None (()) ; proxy = KT1WzRJvFhPta6hfTPanKDwvkmpywom4tCZJ ; version = 1n}}\nEverything at the top-level was executed.\n- testSender1Poke exited with value ().\n\n🎉 All tests passed 🎉"
-                }
-            ]
-        },
-        "@taqueria/plugin-ligo.compile.1695804856728": {
+        "@taqueria/plugin-ligo.compile.1695998240553": {
             "task": "compile",
             "plugin": "@taqueria/plugin-ligo",
-            "time": 1695804856728,
+            "time": 1695998240553,
+            "output": [
+                {
+                    "source": "pokeGame.jsligo",
+                    "artifact": "artifacts/pokeGame.tz\nartifacts/pokeGame.default_storage.tz\nNo parameter expressions found"
+                },
+                {
+                    "source": "pokeGame.jsligo",
+                    "artifact": "artifacts/pokeGame.tz\nartifacts/pokeGame.default_storage.tz\nNo parameter expressions found"
+                }
+            ]
+        },
+        "@taqueria/plugin-ligo.compile.1695998250379": {
+            "task": "compile",
+            "plugin": "@taqueria/plugin-ligo",
+            "time": 1695998250379,
             "output": [
                 {
                     "source": "proxy.jsligo",
-                    "artifact": "artifacts/proxy.tz\nartifacts/proxy.default_storage.tz\nproxy.parameterList.jsligo not compiled\nproxy.parameterList.jsligo not compiled\nproxy.parameterList.jsligo not compiled"
+                    "artifact": "artifacts/proxy.tz\nartifacts/proxy.default_storage.tz\nartifacts/proxy.parameter.initProxyWithV1.tz"
                 }
             ]
         },
-        "@taqueria/plugin-ligo.compile.1695805346470": {
+        "@taqueria/plugin-ligo.compile.1695998891705": {
             "task": "compile",
             "plugin": "@taqueria/plugin-ligo",
-            "time": 1695805346470,
+            "time": 1695998891705,
+            "output": [
+                {
+                    "source": "pokeGame.jsligo",
+                    "artifact": "artifacts/pokeGame.tz\nartifacts/pokeGame.default_storage.tz\nartifacts/pokeGame.storage.storageV2.tz\nNo parameter expressions found"
+                },
+                {
+                    "source": "pokeGame.jsligo",
+                    "artifact": "artifacts/pokeGame.tz\nartifacts/pokeGame.default_storage.tz\nartifacts/pokeGame.storage.storageV2.tz\nNo parameter expressions found"
+                }
+            ]
+        },
+        "@taqueria/plugin-ligo.compile.1695999118447": {
+            "task": "compile",
+            "plugin": "@taqueria/plugin-ligo",
+            "time": 1695999118447,
             "output": [
                 {
                     "source": "proxy.jsligo",
-                    "artifact": "artifacts/proxy.tz\nartifacts/proxy.default_storage.tz\nproxy.parameterList.jsligo not compiled\nproxy.parameterList.jsligo not compiled\nproxy.parameterList.jsligo not compiled"
+                    "artifact": "artifacts/proxy.tz\nartifacts/proxy.default_storage.tz\nartifacts/proxy.parameter.initProxyWithV1.tz\nartifacts/proxy.parameter.initProxyWithV2.tz"
                 }
             ]
         },
-        "@taqueria/plugin-ligo.compile.1695805399435": {
+        "@taqueria/plugin-ligo.compile.1695999516416": {
             "task": "compile",
             "plugin": "@taqueria/plugin-ligo",
-            "time": 1695805399435,
+            "time": 1695999516416,
             "output": [
                 {
                     "source": "proxy.jsligo",
@@ -89,44 +86,47 @@
                 }
             ]
         },
-        "@taqueria/plugin-ligo.compile.1695805573470": {
-            "task": "compile",
-            "plugin": "@taqueria/plugin-ligo",
-            "time": 1695805573470,
-            "output": [
-                {
-                    "source": "pokeGame.jsligo",
-                    "artifact": "artifacts/pokeGame.tz\nartifacts/pokeGame.default_storage.tz\nartifacts/pokeGame.storage.storageV2.tz\nNo parameter expressions found"
-                },
-                {
-                    "source": "pokeGame.jsligo",
-                    "artifact": "artifacts/pokeGame.tz\nartifacts/pokeGame.default_storage.tz\nartifacts/pokeGame.storage.storageV2.tz\nNo parameter expressions found"
-                }
-            ]
-        },
-        "@taqueria/plugin-ligo.compile.1695805618323": {
-            "task": "compile",
-            "plugin": "@taqueria/plugin-ligo",
-            "time": 1695805618323,
-            "output": [
-                {
-                    "source": "pokeGame.jsligo",
-                    "artifact": "artifacts/pokeGame.tz\nartifacts/pokeGame.default_storage.tz\nartifacts/pokeGame.storage.storageV2.tz\nNo parameter expressions found"
-                },
-                {
-                    "source": "pokeGame.jsligo",
-                    "artifact": "artifacts/pokeGame.tz\nartifacts/pokeGame.default_storage.tz\nartifacts/pokeGame.storage.storageV2.tz\nNo parameter expressions found"
-                }
-            ]
-        },
-        "@taqueria/plugin-ligo.test.1695805641053": {
+        "@taqueria/plugin-ligo.test.1696000811378": {
             "task": "test",
             "plugin": "@taqueria/plugin-ligo",
-            "time": 1695805641053,
+            "time": 1696000811378,
             "output": [
                 {
                     "contract": "unit_pokeGame.jsligo",
-                    "testResults": "\"Sender 1 has balance : \"\n3800000000000mutez\nSuccess (2796n)\n{entrypoints = [\"changeVersion\" -> {addr = KT1Gowrda1FYD2EsXxJPVgzCv1ZJ8BCKZH2E ; method = \"changeVersion\"} ; \"Init\" -> {addr = KT1Gowrda1FYD2EsXxJPVgzCv1ZJ8BCKZH2E ; method = \"Init\"} ; \"feedback\" -> {addr = KT1Gowrda1FYD2EsXxJPVgzCv1ZJ8BCKZH2E ; method = \"feedback\"} ; \"Poke\" -> {addr = KT1Gowrda1FYD2EsXxJPVgzCv1ZJ8BCKZH2E ; method = \"Poke\"} ; \"PokeAndGetFeedback\" -> {addr = KT1Gowrda1FYD2EsXxJPVgzCv1ZJ8BCKZH2E ; method = \"PokeAndGetFeedback\"}] ; governance = tz1MBWU1WkszFfkEER2pgn4ATKXE9ng7x1sR}\n\"calling _testPokeGame on proxy : \"\nKT1WzRJvFhPta6hfTPanKDwvkmpywom4tCZJ(None)\nSuccess (1353n)\n\"calling _testPokeGame on proxy : \"\nKT1WzRJvFhPta6hfTPanKDwvkmpywom4tCZJ(None)\nSuccess (1351n)\n{feedback = \"kiss\" ; pokeTraces = [tz1hkMbkLPkvhxyqsQoBoLPqb1mruSzZx3zy -> {feedback = \"\" ; receiver = KT1Gowrda1FYD2EsXxJPVgzCv1ZJ8BCKZH2E}] ; ticketOwnership = [] ; tzip18 = {contractNext = None (()) ; contractPrevious = None (()) ; proxy = KT1WzRJvFhPta6hfTPanKDwvkmpywom4tCZJ ; version = 1n}}\nEverything at the top-level was executed.\n- testSender1Poke exited with value ().\n\n🎉 All tests passed 🎉"
+                    "testResults": "Some tests failed :("
+                }
+            ]
+        },
+        "@taqueria/plugin-ligo.test.1696000843873": {
+            "task": "test",
+            "plugin": "@taqueria/plugin-ligo",
+            "time": 1696000843873,
+            "output": [
+                {
+                    "contract": "unit_pokeGame.jsligo",
+                    "testResults": "Some tests failed :("
+                }
+            ]
+        },
+        "@taqueria/plugin-ligo.test.1696000903641": {
+            "task": "test",
+            "plugin": "@taqueria/plugin-ligo",
+            "time": 1696000903641,
+            "output": [
+                {
+                    "contract": "unit_pokeGame.jsligo",
+                    "testResults": "Some tests failed :("
+                }
+            ]
+        },
+        "@taqueria/plugin-ligo.test.1696000960439": {
+            "task": "test",
+            "plugin": "@taqueria/plugin-ligo",
+            "time": 1696000960439,
+            "output": [
+                {
+                    "contract": "unit_pokeGame.jsligo",
+                    "testResults": "\"Sender 1 has balance : \"\n3800000000000mutez\nSuccess (2807n)\n{entrypoints = [\"changeVersion\" -> {addr = KT1PZ2MwkeECCaTtpLbVbTaG9UrdVNm43kiN ; method = \"changeVersion\"} ; \"Init\" -> {addr = KT1PZ2MwkeECCaTtpLbVbTaG9UrdVNm43kiN ; method = \"Init\"} ; \"feedback\" -> {addr = KT1PZ2MwkeECCaTtpLbVbTaG9UrdVNm43kiN ; method = \"feedback\"} ; \"Poke\" -> {addr = KT1PZ2MwkeECCaTtpLbVbTaG9UrdVNm43kiN ; method = \"Poke\"} ; \"PokeAndGetFeedback\" -> {addr = KT1PZ2MwkeECCaTtpLbVbTaG9UrdVNm43kiN ; method = \"PokeAndGetFeedback\"}] ; governance = tz1MBWU1WkszFfkEER2pgn4ATKXE9ng7x1sR}\n\"calling _testPokeGame on proxy : \"\nKT1SCUzs3fMR75b6Lp1w7ZisUWV3nHm6k75Z(None)\nSuccess (1359n)\n\"calling _testPokeGame on proxy : \"\nKT1SCUzs3fMR75b6Lp1w7ZisUWV3nHm6k75Z(None)\nSuccess (1357n)\n{feedback = \"kiss\" ; pokeTraces = [tz1hkMbkLPkvhxyqsQoBoLPqb1mruSzZx3zy -> {feedback = \"\" ; receiver = KT1PZ2MwkeECCaTtpLbVbTaG9UrdVNm43kiN}] ; ticketOwnership = [] ; tzip18 = {contractNext = None (()) ; contractPrevious = None (()) ; proxy = KT1SCUzs3fMR75b6Lp1w7ZisUWV3nHm6k75Z ; version = 1n}}\nEverything at the top-level was executed.\n- testSender1Poke exited with value ().\n\n🎉 All tests passed 🎉"
                 }
             ]
         }

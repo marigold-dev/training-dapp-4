@@ -5,7 +5,7 @@ const default_storage = {
     feedback: "kiss",
     ticketOwnership: Map.empty as map<address, ticket<string>>, //ticket of claims
     tzip18: {
-        proxy: "KT1LXkvAPGEtdFNfFrTyBEySJvQnKrsPn4vD" as address,
+        proxy: "KT1BPoz3Yi8LPimxCiDvpmutbCNY8x3ghKyQ" as address,
         version: 1 as nat,
         contractPrevious: None() as option<address>,
         contractNext: None() as option<address>
@@ -17,11 +17,11 @@ const storageV2 = {
     feedback: "hello",
     ticketOwnership: Map.empty as map<address, ticket<string>>,
     tzip18: {
-        proxy: "KT1LXkvAPGEtdFNfFrTyBEySJvQnKrsPn4vD" as address,
+        proxy: "KT1BPoz3Yi8LPimxCiDvpmutbCNY8x3ghKyQ" as address,
         version: 2 as nat,
         contractPrevious: Some(
-            "KT1FAMmBMoaWLL6afKRh3FAQLYBoPr1m7YWd" as address
+            "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK" as address
         ) as option<address>,
-        contractNext: None() as option<address>
-    }
+        contractNext: None() as option<address>,
+    },
 };

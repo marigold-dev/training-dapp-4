@@ -1,4 +1,4 @@
-type callContract = { entrypointName: string, payload: bytes };
+export type callContract = { entrypointName: string, payload: bytes };
 
 export type entrypointType = { method: string, addr: address };
 
@@ -19,20 +19,20 @@ export type storage = {
 
 };
 
-export type _return = [list<operation>, storage];
+type _return = [list<operation>, storage];
 
 // the proxy function
 
 @entry
 const callContract = (param: callContract, store: storage): _return => {
   return match(Big_map.find_opt(param.entrypointName, store.entrypoints)) {
-    when (None):
+    when (None()):
       failwith("No entrypoint found")
     when (Some(entry)):
       match(
         Tezos.get_contract_opt(entry.addr) as option<contract<callContract>>
       ) {
-        when (None):
+        when (None()):
           failwith("No contract found at this address")
         when (Some(contract)):
           [
@@ -75,7 +75,7 @@ const upgrade = (
         do {
           let b: big_map<string, entrypointType> =
             match(x.entrypoint) {
-              when (None):
+              when (None()):
                 do {
                   if (x.isRemoved == true) {
                     return Big_map.remove(x.name, m)
@@ -90,7 +90,7 @@ const upgrade = (
 
                   if (x.isRemoved == false) {
                     return match(x.entrypoint) {
-                      when (None):
+                      when (None()):
                         m
                       when (Some(c)):
                         Big_map.update(x.name, Some(c), m)
@@ -111,7 +111,7 @@ const upgrade = (
   //check if version needs to be changed
 
   return match(changeVersionOpt) {
-    when (None):
+    when (None()):
       [list([]) as list<operation>, { ...store, entrypoints: new_entrypoints }]
     when (Some(change)):
       do {
@@ -120,7 +120,7 @@ const upgrade = (
             Tezos.get_contract_opt(change.oldAddr) as
               option<contract<callContract>>
           ) {
-            when (None):
+            when (None()):
               failwith("No contract found at this address")
             when (Some(contract)):
               do {
@@ -145,9 +145,9 @@ const upgrade = (
 };
 
 @view
-const getView = (viewName: string, store: storage): bytes => {
+export const getView = (viewName: string, store: storage): bytes => {
   return match(Big_map.find_opt(viewName, store.entrypoints)) {
-    when (None):
+    when (None()):
       failwith("View " + viewName + " not declared on this proxy")
     when (Some(ep)):
       Option.unopt(

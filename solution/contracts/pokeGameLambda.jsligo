@@ -6,19 +6,13 @@ export type storage = {
   pokeTraces: map<address, pokeMessage>,
   feedback: string,
   ticketOwnership: map<address, ticket<string>>, //ticket of claims
-  feedbackFunction
+  feedbackFunction: feedbackFunction
 };
-
-type returned_feedback = [address, string];
-
-type oracle_param = contract<returned_feedback>;
-
-type parameter = unit;
 
 type return_ = [list<operation>, storage];
 
 @entry
-const poke = (_: parameter, store: storage): return_ => {
+const poke = (_: unit, store: storage): return_ => {
   const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
   const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
     Map.get_and_update(
@@ -27,7 +21,7 @@ const poke = (_: parameter, store: storage): return_ => {
       ticketOwnership
     );
   return match(t) {
-    when (None):
+    when (None()):
       failwith("User does not have tickets => not allowed")
     when (Some(_t)):
       [
@@ -84,7 +78,7 @@ const pokeAndGetFeedback = (oracleAddress: address, store: storage): return_ => 
     feedback: feedbackFunction(oracleAddress)
   };
   return match(t) {
-    when (None):
+    when (None()):
       failwith("User does not have tickets => not allowed")
     when (Some(_t)):
       [
@@ -100,7 +94,9 @@ const pokeAndGetFeedback = (oracleAddress: address, store: storage): return_ => 
 };
 
 @view
-const feedback = (_: unit, store: storage): string => { return store.feedback };
+export const feedback = (_: unit, store: storage): string => {
+  return store.feedback
+};
 
 @entry
 const updateFeedbackFunction = (newCode: feedbackFunction, store: storage): return_ => {

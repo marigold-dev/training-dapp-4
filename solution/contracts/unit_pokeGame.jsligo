@@ -12,7 +12,7 @@ const sender1: address = Test.nth_bootstrap_account(1);
 
 const _1 = Test.log("Sender 1 has balance : ");
 
-const _2 = Test.log(Test.get_balance(sender1));
+const _2 = Test.log(Test.get_balance_of_address(sender1));
 
 const _3 = Test.set_baker(admin);
 
@@ -29,7 +29,6 @@ export const _testPokeGame = (
   s: address
 ): unit => {
   const contr = Test.to_contract(taddr);
-  const contrAddress = Tezos.address(contr);
   const _ = Test.log("calling _testPokeGame on proxy : ");
   const _1 = Test.log(contr);
   Test.set_source(s);
@@ -60,13 +59,9 @@ const testSender1Poke =
           > //interface schema map
 
       };
-      const [tProxyaddr, _, _1] =
-        Test.originate_module(
-          contract_of(Proxy),
-          proxy_initial_storage,
-          initial_tez
-        );
-      const proxyContr = Test.to_contract(tProxyaddr);
+      const orig =
+        Test.originate(contract_of(Proxy), proxy_initial_storage, initial_tez);
+      const proxyContr = Test.to_contract(orig.addr);
       const proxyContrAddress = Tezos.address(proxyContr);
       /***CONTRACT **/
 
@@ -83,14 +78,10 @@ const testSender1Poke =
           contractNext: None() as option<address>
         }
       };
-      const [taddr, _2, _3] =
-        Test.originate_module(
-          contract_of(PokeGame),
-          initial_storage,
-          initial_tez
-        );
-      const contr = Test.to_contract(taddr);
-  const addr = Tezos.address(contr);  
+      const origContract =
+        Test.originate(contract_of(PokeGame), initial_storage, initial_tez);
+      const contr = Test.to_contract(origContract.addr);
+      const addr = Tezos.address(contr);
       /**Upgrade proxy **/
 
       const status =
@@ -135,19 +126,19 @@ const testSender1Poke =
           0 as tez
         );
       Test.log(status);
-      const storeProxy: Proxy.storage = Test.get_storage(tProxyaddr);
+      const storeProxy: Proxy.storage =
+        Test.get_storage_of_address(proxyContrAddress);
       Test.log(storeProxy);
       /** RUN TEST*/
 
       _testPokeGame(
-        tProxyaddr,
+        orig.addr,
         "Init",
         Bytes.pack([sender1, 10 as nat]),
         sender1
       );
-      _testPokeGame(tProxyaddr, "Poke", (bytes `dummy`), sender1);
-      
-      const store: PokeGame.storage = Test.get_storage(taddr);
+      _testPokeGame(orig.addr, "Poke", (bytes `dummy`), sender1);
+      const store: PokeGame.storage = Test.get_storage_of_address(addr);
       Test.log(store);
       //check poke is registered
 
@@ -164,7 +155,7 @@ const testSender1Poke =
               "receiver is not equal"
             )
           }
-        when (None):
+        when (None()):
           assert_with_error(false, "don't find traces")
       }
     }

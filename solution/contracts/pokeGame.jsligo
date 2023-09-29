@@ -9,17 +9,10 @@ export type storage = {
   tzip18: TZIP18.tzip18
 };
 
-type returned_feedback = [address, string]; //address that gives feedback and a string message
-
-
-type oracle_param = contract<returned_feedback>;
-
-type parameter = { entrypointName: string, payload: bytes };
-
 type return_ = [list<operation>, storage];
 
 const poke = (
-  _: parameter,
+  _: { entrypointName: string, payload: bytes },
   [pokeTraces, feedback, ticketOwnership, tzip18]: [
     map<address, pokeMessage>,
     string,
@@ -137,6 +130,13 @@ const init = (
     ]
 };
 
+@view
+const getView = (viewName: string, store: storage): bytes => {
+  if (viewName == "feedback") {
+    return Bytes.pack(store.feedback);
+  } else return failwith("View " + viewName + " not found on this contract");
+};
+
 /**
  * Function called by a parent contract or administrator to set the current version on an old contract
  **/
@@ -161,15 +161,11 @@ const changeVersion = (
   ]
 };
 
-@view
-const getView = (viewName: string, store: storage): bytes => {
-  if (viewName == "feedback") {
-    return Bytes.pack(store.feedback);
-  } else return failwith("View " + viewName + " not found on this contract");
-};
-
 @entry
-export const main = (action: parameter, store: storage): return_ => {
+export const main = (
+  action: { entrypointName: string, payload: bytes },
+  store: storage
+): return_ => {
   //destructure the storage to avoid DUP
 
   const { pokeTraces, feedback, ticketOwnership, tzip18 } = store;
