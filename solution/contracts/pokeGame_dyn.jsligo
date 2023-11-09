@@ -14,13 +14,18 @@ type return_ = [list<operation>, storage];
 
 @dyn_entry
 const poke = (_: unit, store: storage): return_ => {
-  const { pokeTraces, feedback, ticketOwnership } = store.storage;
+  const { storage, dynamic_entrypoints } = store;
+  const { pokeTraces, feedback, ticketOwnership } = storage;
   const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
     Map.get_and_update(
-      Tezos.get_source(),
+      "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb" as address,
+      //Tezos.get_source(),
+
       None() as option<ticket<string>>,
       ticketOwnership
     );
+  return [list([]), store];
+/*
   return match(t) {
     when (None()):
       failwith("User does not have tickets => not allowed")
@@ -28,7 +33,7 @@ const poke = (_: unit, store: storage): return_ => {
       [
         list([]) as list<operation>,
         {
-          ...store,
+          dynamic_entrypoints,
           storage: {
             feedback,
             pokeTraces: Map.add(
@@ -40,10 +45,11 @@ const poke = (_: unit, store: storage): return_ => {
           }
         }
       ]
-  }
+  }*/
+
 };
 
-@no_mutation
+/*
 @dyn_entry
 const pokeAndGetFeedback = (oracleAddress: address, store: storage): return_ => {
   const { pokeTraces, feedback, ticketOwnership } = store.storage;
@@ -88,14 +94,19 @@ const pokeAndGetFeedback = (oracleAddress: address, store: storage): return_ => 
       }
   }
 };
+*/
 
 @entry
 const init = ([a, ticketCount]: [address, nat], store: storage): return_ => {
-  const { pokeTraces, feedback, ticketOwnership } = store.storage;
+  const { storage, dynamic_entrypoints } = store;
+  const { pokeTraces, feedback, ticketOwnership } = storage;
   if (ticketCount == (0 as nat)) {
     return [
       list([]) as list<operation>,
-      { ...store, storage: { pokeTraces, feedback, ticketOwnership } }
+      {
+        dynamic_entrypoints,
+        storage: { pokeTraces, feedback, ticketOwnership }
+      }
     ]
   } else {
     const t: ticket<string> =
@@ -103,7 +114,7 @@ const init = ([a, ticketCount]: [address, nat], store: storage): return_ => {
     return [
       list([]) as list<operation>,
       {
-        ...store,
+        dynamic_entrypoints,
         storage: {
           pokeTraces,
           feedback,
