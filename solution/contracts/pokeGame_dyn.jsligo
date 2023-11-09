@@ -1,0 +1,122 @@
+export type pokeMessage = { receiver: address, feedback: string };
+
+export type storage = {
+  storage: {
+    pokeTraces: map<address, pokeMessage>,
+    feedback: string,
+    ticketOwnership: map<address, ticket<string>>, //ticket of claims
+
+  };
+  dynamic_entrypoints
+};
+
+type return_ = [list<operation>, storage];
+
+@dyn_entry
+const poke = (_: unit, store: storage): return_ => {
+  const { pokeTraces, feedback, ticketOwnership } = store.storage;
+  const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
+    Map.get_and_update(
+      Tezos.get_source(),
+      None() as option<ticket<string>>,
+      ticketOwnership
+    );
+  return match(t) {
+    when (None()):
+      failwith("User does not have tickets => not allowed")
+    when (Some(_t)):
+      [
+        list([]) as list<operation>,
+        {
+          ...store,
+          storage: {
+            feedback,
+            pokeTraces: Map.add(
+              Tezos.get_source(),
+              { receiver: Tezos.get_self_address(), feedback: "" },
+              pokeTraces
+            ),
+            ticketOwnership: tom
+          }
+        }
+      ]
+  }
+};
+
+@no_mutation
+@dyn_entry
+const pokeAndGetFeedback = (oracleAddress: address, store: storage): return_ => {
+  const { pokeTraces, feedback, ticketOwnership } = store.storage;
+  ignore(feedback);
+  const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
+    Map.get_and_update(
+      Tezos.get_source(),
+      None() as option<ticket<string>>,
+      ticketOwnership
+    );
+  let feedbackOpt: option<string> =
+    Tezos.call_view("feedback", unit, oracleAddress);
+  return match(t) {
+    when (None()):
+      failwith("User does not have tickets => not allowed")
+    when (Some(_t)):
+      match(feedbackOpt) {
+        when (Some(feedback)):
+          do {
+            let feedbackMessage = {
+              receiver: oracleAddress,
+              feedback: feedback
+            };
+            return [
+              list([]) as list<operation>,
+              {
+                ...store,
+                storage: {
+                  feedback,
+                  pokeTraces: Map.add(
+                    Tezos.get_source(),
+                    feedbackMessage,
+                    pokeTraces
+                  ),
+                  ticketOwnership: tom
+                }
+              }
+            ]
+          }
+        when (None()):
+          failwith("Cannot find view feedback on given oracle address")
+      }
+  }
+};
+
+@entry
+const init = ([a, ticketCount]: [address, nat], store: storage): return_ => {
+  const { pokeTraces, feedback, ticketOwnership } = store.storage;
+  if (ticketCount == (0 as nat)) {
+    return [
+      list([]) as list<operation>,
+      { ...store, storage: { pokeTraces, feedback, ticketOwnership } }
+    ]
+  } else {
+    const t: ticket<string> =
+      Option.unopt(Tezos.create_ticket("can_poke", ticketCount));
+    return [
+      list([]) as list<operation>,
+      {
+        ...store,
+        storage: {
+          pokeTraces,
+          feedback,
+          ticketOwnership: Map.add(a, t, ticketOwnership)
+        }
+      }
+    ]
+  }
+};
+
+@view
+const getView = (viewName: string, store: storage): bytes => {
+  if (viewName == "feedback") {
+    return Bytes.pack(store.storage.feedback);
+  } else return failwith("View " + viewName + " not found on this contract");
+};
