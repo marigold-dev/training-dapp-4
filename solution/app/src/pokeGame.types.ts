@@ -1,33 +1,34 @@
 
 import { ContractAbstractionFromContractType, WalletContractAbstractionFromContractType } from './type-utils';
-import { address, bytes, MMap, nat, ticket } from './type-aliases';
+import { address, BigMap, bytes, Instruction, MMap, nat, ticket } from './type-aliases';
 
 export type Storage = {
-    pokeTraces: MMap<address, {
-        receiver: address;
+    storage: {
+        pokeTraces: MMap<address, {
+            receiver: address;
+            feedback: string;
+        }>;
         feedback: string;
-    }>;
-    feedback: string;
-    ticketOwnership: MMap<address, ticket>;
-    tzip18: {
-        proxy: address;
-        version: nat;
-        contractPrevious: {Some: address} | null;
-        contractNext: {Some: address} | null;
+        ticketOwnership: MMap<address, ticket>;
     };
+    dynamic_entrypoints: BigMap<nat, bytes>;
 };
 
 type Methods = {
-    default: (
-        entrypointName: string,
-        payload: bytes,
+    poke: () => Promise<void>;
+    setPoke: (param: Instruction[]) => Promise<void>;
+    init: (
+        _0: address,
+        _1: nat,
     ) => Promise<void>;
 };
 
 type MethodsObject = {
-    default: (params: {
-        entrypointName: string,
-        payload: bytes,
+    poke: () => Promise<void>;
+    setPoke: (param: Instruction[]) => Promise<void>;
+    init: (params: {
+        0: address,
+        1: nat,
     }) => Promise<void>;
 };
 

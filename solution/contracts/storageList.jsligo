@@ -1,0 +1,14 @@
+
+ {
+    dynamic_entrypoints: Big_map.empty as big_map<nat, bytes>,
+    storage: {
+        pokeTraces: Map.empty as map<address, { receiver: address, feedback: string }>,
+        feedback: "kiss",
+        ticketOwnership: (Map.empty as
+            map<
+                address,
+                ticket<string>
+            > )
+
+    }
+}

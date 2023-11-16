@@ -266,7 +266,7 @@ Time to compile and play with the CLI
 
 ```bash
 npm i
-TAQ_LIGO_IMAGE=ligolang/ligo:1.0.0 taq compile pokeGame.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:1.1.0 taq compile pokeGame.jsligo
 ```
 
 Redeploy to testnet

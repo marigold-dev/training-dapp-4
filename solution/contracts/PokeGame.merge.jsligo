@@ -1,0 +1,3 @@
+#include "PokeGame.jsligo"
+
+#include "PokeGame.storageList.jsligo"
