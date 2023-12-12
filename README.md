@@ -1,46 +1,43 @@
 ---
-title: Training dapp n°4
-tags: Training
-description: Training n°4 for decentralized application
+title: "Part 4: Smart contract upgrades"
+authors: "Benjamin Fuentes"
+last_update:
+  date: 29 November 2023
 ---
 
-## :round_pushpin: [See Github version and full code here](https://github.com/marigold-dev/training-dapp-4)
-
-# Training dapp n°4
-
-# :point_up: Upgradable Poke game
+# Upgradable Poke game
 
 Previously, you learned how to use tickets and don't mess up with it.
-In this third session, you will enhance your skills on :
+In this third session, you will enhance your skills on:
 
-- upgrading a smart contract with lambda function code
-- upgrading a smart contract with proxy
+- Upgrading a smart contract with lambda function code.
+- Upgrading a smart contract with proxy.
 
 As you maybe know, smart contracts are immutable but in real life, applications are not and evolve. During the past several years, bugs and vulnerabilities in smart contracts caused millions of dollars to get stolen or lost forever. Such cases may even require manual intervention in blockchain operation to recover the funds.
 
-Let's see 2 tricks that allow to upgrade a contract
+Let's see some tricks that allow to upgrade a contract.
 
-# :memo: Prerequisites
+# Prerequisites
 
-There is nothing more than you needed on first session : https://github.com/marigold-dev/training-dapp-1#memo-prerequisites
+There is nothing more than you needed on first session: https://github.com/marigold-dev/training-dapp-1#memo-prerequisites.
 
-Get your code from the session 3 or the solution [here](https://github.com/marigold-dev/training-dapp-3/tree/main/solution)
+Get the code from the session 3 or the solution [here](https://github.com/marigold-dev/training-dapp-3/tree/main/solution).
 
-# :arrows_clockwise: Upgrades
+# Upgrades
 
 As everyone knows, one feature of blockchain is to keep immutable code on a block. This allows transparency, traceability and trustlessness.
 
-But application lifecycle implies to evolve and upgrade code to fix bug or bring functionalities. So how can we do it ?
+But application lifecycle implies to evolve and upgrade code to fix bug or bring functionalities. So, how to do it ?
 
 > https://gitlab.com/tezos/tzip/-/blob/master/proposals/tzip-18/tzip-18.md
 
-> Note : All below solutions break in a wait the fact that a smartcontract is immutable. We can preserve in a way **Trust** if the upgrade process has some security and authenticity around it. Like the first time an admin deploys a smartcontract, any user should be able to trust the code reading it with free read access, the same should apply to the upgrade process (notification of new code version, admin identification, whitelisted auditor reports, ...). To resume, if you really want to avoid DEVOPS centralization, you are about to create a DAO with a voting process amongs some selected users/administrators in order to deploy the new version of the smartcontract ... but let's simplify and talk here only about classical centralized admin deployment
+> Note: All below solutions break in a wait the fact that a smart contract is immutable. **Trust** preservation can be safe enough if the upgrade process has some security and authenticity around it. Like the first time an admin deploys a smart contract, any user should be able to trust the code reading it with free read access, the same should apply to the upgrade process (notification of new code version, admin identification, whitelisted auditor reports, ...). To resume, if you really want to avoid DEVOPS centralization, you are about to create a DAO with a voting process among some selected users/administrators in order to deploy the new version of the smart contract ... but let's simplify and talk here only about classical centralized admin deployment.
 
-## :dizzy_face: Naive approach
+## Naive approach
 
-One can deploy a new version of the smart contract and do a redirection to the new address on front end side
+One can deploy a new version of the smart contract and do a redirection to the new address on front end side.
 
-Complete flow
+Complete flow.
 
 ```mermaid
 sequenceDiagram
@@ -64,11 +61,11 @@ sequenceDiagram
 |               | Need to sync/update frontend at each backend migration                                         |
 |               | Lose reference to previous contract address, can lead to issues with other dependent contracts |
 
-## Stored Lambda function :star:
+## Stored Lambda function
 
-This time, the code will be on the storage and being executed at runtime
+This time, the code will be on the storage and being executed at runtime.
 
-Init
+Init.
 
 ```mermaid
 sequenceDiagram
@@ -76,7 +73,7 @@ sequenceDiagram
   Tezos-->>Admin: contractAddress
 ```
 
-Interaction
+Interaction.
 
 ```mermaid
 sequenceDiagram
@@ -84,7 +81,7 @@ sequenceDiagram
   Note right of SmartContract : Tezos.exec(lambaMap.find_opt(myfunction))
 ```
 
-Administration
+Administration.
 
 ```mermaid
 sequenceDiagram
@@ -97,251 +94,251 @@ sequenceDiagram
 
 | Pros                                                                                               | Cons                                                                                                               |
 | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| No more migration of code and storage. Update the lambda function code that is on existing storage | If we want also storage, we need to store all in bytes PACKING/UNPACKING and we lose all type checking             |
+| No more migration of code and storage. Update the lambda function code that is on existing storage | For the storage, all has to be stores as bytes PACKING/UNPACKING it so type checking is lost                       |
 | keep same contract address                                                                         | IDE or tools do not work anymore on lambda code. Michelson does not protect us from some kinds of mistakes anymore |
-|                                                                                                    | Unexpected changes can cause other contract callers to fail, we lose interface benefits                            |
+|                                                                                                    | Unexpected changes can cause other contract callers to fail, Interface benefits is lost                            |
 |                                                                                                    | Harder to audit and trace, can lead to really big security nd Trust issues                                         |
 |                                                                                                    | Storing everything as bytes is limited to PACK-able types like nat, string, list, set, map                         |
 
 ### Implementation
 
-We are going to change the implementation of the function `pokeAndGetFeedback`. Getting the feedback will be now as a lambda function on storage. So, we will require :
+Change the implementation of the function `pokeAndGetFeedback`. The feedback is now a lambda function on the storage.
+It is required to:
 
-- a new entrypoint to change the lambda code
-- update current entrypoint to call/execute the lambda
+- Add a new entrypoint to change the lambda code.
+- Update the current entrypoint for calling the lambda.
 
-Let's start with adding the lambda function definition of the storage
+1. Let's start with adding the lambda function definition of the storage.
 
-```ligolang
-export type feedbackFunction = (oracleAddress: address) => string;
+   ```ligolang
+   export type feedbackFunction = (oracleAddress: address) => string;
 
-export type storage = {
-  pokeTraces: map<address, pokeMessage>,
-  feedback: string,
-  ticketOwnership: map<address, ticket<string>>, //ticket of claims
-  feedbackFunction: feedbackFunction
-};
-```
+   export type storage = {
+     pokeTraces: map<address, pokeMessage>,
+     feedback: string,
+     ticketOwnership: map<address, ticket<string>>, //ticket of claims
+     feedbackFunction: feedbackFunction
+   };
+   ```
 
-Let's do minor changes as you have 1 additional field `feedbackFunction` on storage destructuring.
+   Let's do minor changes as you have 1 additional field `feedbackFunction` on storage destructuring.
 
-Edit the `PokeAndGetFeedback` function where we execute the lambda `feedbackFunction(..)`
+1. Edit the `PokeAndGetFeedback` function where the lambda `feedbackFunction(..)` is executed
 
-```ligolang
-@no_mutation
-@entry
-const pokeAndGetFeedback = (oracleAddress: address, store: storage): return_ => {
-  const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
-  const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
-    Map.get_and_update(
-      Tezos.get_source(),
-      None() as option<ticket<string>>,
-      ticketOwnership
-    );
-  let feedbackMessage = {
-    receiver: oracleAddress,
-    feedback: feedbackFunction(oracleAddress)
-  };
-  return match(t) {
-    when (None()):
-      failwith("User does not have tickets => not allowed")
-    when (Some(_t)):
-      [
-        list([]) as list<operation>,
-        {
-          feedback,
-          pokeTraces: Map.add(Tezos.get_source(), feedbackMessage, pokeTraces),
-          ticketOwnership: tom,
-          feedbackFunction
-        }
-      ]
-  }
-};
-```
+   ```ligolang
+   @no_mutation
+   @entry
+   const pokeAndGetFeedback = (oracleAddress: address, store: storage): return_ => {
+     const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
+     const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
+       Map.get_and_update(
+         Tezos.get_source(),
+         None() as option<ticket<string>>,
+         ticketOwnership
+       );
+     let feedbackMessage = {
+       receiver: oracleAddress,
+       feedback: feedbackFunction(oracleAddress)
+     };
+     return match(t) {
+       when (None()):
+         failwith("User does not have tickets => not allowed")
+       when (Some(_t)):
+         [
+           list([]) as list<operation>,
+           {
+             feedback,
+             pokeTraces: Map.add(Tezos.get_source(), feedbackMessage, pokeTraces),
+             ticketOwnership: tom,
+             feedbackFunction
+           }
+         ]
+     }
+   };
+   ```
 
-Note the line with `feedbackFunction(oracleAddress)`, so we call the lambda and still pass the address parameter
+   Notice the line with `feedbackFunction(oracleAddress)` and call the lambda with the address parameter.
 
-On a first time we will inject the old code to check all still works and then we will modify the lambda code on the storage to check that behavior has changed.
+   The first time, the current code is injected to check that it still works, and then, modify the lambda code on the storage.
 
-To modify the lambda function code we need an extra admin entrypoint `updateFeedbackFunction`
+1. To modify the lambda function code, add an extra admin entrypoint `updateFeedbackFunction`.
 
-```ligolang
-@entry
-const updateFeedbackFunction = (newCode: feedbackFunction, store: storage): return_ => {
-  const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
-  ignore(feedbackFunction);
-  return [
-    list([]),
-    { pokeTraces, feedback, ticketOwnership, feedbackFunction: newCode }
-  ]
-};
-```
+   ```ligolang
+   @entry
+   const updateFeedbackFunction = (newCode: feedbackFunction, store: storage): return_ => {
+     const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
+     ignore(feedbackFunction);
+     return [
+       list([]),
+       { pokeTraces, feedback, ticketOwnership, feedbackFunction: newCode }
+     ]
+   };
+   ```
 
-As we broke the storage definition earlier, fix all storage field missing warnings on `poke` and `init` functions
+1. The storage definition is broken, fix all storage missing field warnings on `poke` and `init` functions.
 
-```ligolang
-@entry
-const poke = (_: unit, store: storage): return_ => {
-  const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
-  const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
-    Map.get_and_update(
-      Tezos.get_source(),
-      None() as option<ticket<string>>,
-      ticketOwnership
-    );
-  return match(t) {
-    when (None()):
-      failwith("User does not have tickets => not allowed")
-    when (Some(_t)):
-      [
-        list([]) as list<operation>,
-        {
-          feedback,
-          pokeTraces: Map.add(
-            Tezos.get_source(),
-            { receiver: Tezos.get_self_address(), feedback: "" },
-            pokeTraces
-          ),
-          ticketOwnership: tom,
-          feedbackFunction
-        }
-      ]
-  }
-};
+   ```ligolang
+   @entry
+   const poke = (_: unit, store: storage): return_ => {
+     const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
+     const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
+       Map.get_and_update(
+         Tezos.get_source(),
+         None() as option<ticket<string>>,
+         ticketOwnership
+       );
+     return match(t) {
+       when (None()):
+         failwith("User does not have tickets => not allowed")
+       when (Some(_t)):
+         [
+           list([]) as list<operation>,
+           {
+             feedback,
+             pokeTraces: Map.add(
+               Tezos.get_source(),
+               { receiver: Tezos.get_self_address(), feedback: "" },
+               pokeTraces
+             ),
+             ticketOwnership: tom,
+             feedbackFunction
+           }
+         ]
+     }
+   };
 
-@entry
-const init = ([a, ticketCount]: [address, nat], store: storage): return_ => {
-  const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
-  if (ticketCount == (0 as nat)) {
-    return [
-      list([]) as list<operation>,
-      { pokeTraces, feedback, ticketOwnership, feedbackFunction }
-    ]
-  } else {
-    const t: ticket<string> =
-      Option.unopt(Tezos.create_ticket("can_poke", ticketCount));
-    return [
-      list([]) as list<operation>,
-      {
-        pokeTraces,
-        feedback,
-        ticketOwnership: Map.add(a, t, ticketOwnership),
-        feedbackFunction
-      }
-    ]
-  }
-};
-```
+   @entry
+   const init = ([a, ticketCount]: [address, nat], store: storage): return_ => {
+     const { pokeTraces, feedback, ticketOwnership, feedbackFunction } = store;
+     if (ticketCount == (0 as nat)) {
+       return [
+         list([]) as list<operation>,
+         { pokeTraces, feedback, ticketOwnership, feedbackFunction }
+       ]
+     } else {
+       const t: ticket<string> =
+         Option.unopt(Tezos.create_ticket("can_poke", ticketCount));
+       return [
+         list([]) as list<operation>,
+         {
+           pokeTraces,
+           feedback,
+           ticketOwnership: Map.add(a, t, ticketOwnership),
+           feedbackFunction
+         }
+       ]
+     }
+   };
+   ```
 
-Change also the initial storage with the old initial value of the lambda function (i.e calling a view to get a feedback)
+1. Change the initial storage with the old initial value of the lambda function (i.e calling a view to get a feedback).
 
-```ligolang
-#import "pokeGame.jsligo" "Contract"
+   ```ligolang
+   #import "pokeGame.jsligo" "Contract"
 
-const default_storage = {
-    pokeTraces: Map.empty as map<address, Contract.pokeMessage>,
-    feedback: "kiss",
-    ticketOwnership: Map.empty as map<address, ticket<string>>, //ticket of claims
-    feedbackFunction: (
-        (oracleAddress: address): string => {
-            return match(
-                Tezos.call_view("feedback", unit, oracleAddress) as
-                    option<string>
-            ) {
-                when (Some(feedback)):
-                    feedback
-                when (None()):
-                    failwith(
-                        "Cannot find view feedback on given oracle address"
-                    )
-            };
-        }
-    )
-};
-```
+   const default_storage = {
+       pokeTraces: Map.empty as map<address, Contract.pokeMessage>,
+       feedback: "kiss",
+       ticketOwnership: Map.empty as map<address, ticket<string>>, //ticket of claims
+       feedbackFunction: (
+           (oracleAddress: address): string => {
+               return match(
+                   Tezos.call_view("feedback", unit, oracleAddress) as
+                       option<string>
+               ) {
+                   when (Some(feedback)):
+                       feedback
+                   when (None()):
+                       failwith(
+                           "Cannot find view feedback on given oracle address"
+                       )
+               };
+           }
+       )
+   };
+   ```
 
-Time to compile and play with the CLI
+1. Compile and play with the CLI.
 
-> Note : check that Docker is running
+   ```bash
+   npm i
+   TAQ_LIGO_IMAGE=ligolang/ligo:1.1.0 taq compile pokeGame.jsligo
+   ```
 
-```bash
-npm i
-TAQ_LIGO_IMAGE=ligolang/ligo:1.0.0 taq compile pokeGame.jsligo
-```
+1. Redeploy to testnet
 
-Redeploy to testnet
+   ```bash
+   taq deploy pokeGame.tz -e testing
+   ```
 
-```bash
-taq deploy pokeGame.tz -e testing
-```
+   ```logs
+   ┌─────────────┬──────────────────────────────────────┬──────────┬──────────────────┬────────────────────────────────┐
+   │ Contract    │ Address                              │ Alias    │ Balance In Mutez │ Destination                    │
+   ├─────────────┼──────────────────────────────────────┼──────────┼──────────────────┼────────────────────────────────┤
+   │ pokeGame.tz │ KT1VjFawYQ4JeEEAVchqaYK1NmXCENm2ufer │ pokeGame │ 0                │ https://ghostnet.ecadinfra.com │
+   └─────────────┴──────────────────────────────────────┴──────────┴──────────────────┴────────────────────────────────┘
+   ```
 
-```logs
-┌─────────────┬──────────────────────────────────────┬──────────┬──────────────────┬────────────────────────────────┐
-│ Contract    │ Address                              │ Alias    │ Balance In Mutez │ Destination                    │
-├─────────────┼──────────────────────────────────────┼──────────┼──────────────────┼────────────────────────────────┤
-│ pokeGame.tz │ KT1VjFawYQ4JeEEAVchqaYK1NmXCENm2ufer │ pokeGame │ 0                │ https://ghostnet.ecadinfra.com │
-└─────────────┴──────────────────────────────────────┴──────────┴──────────────────┴────────────────────────────────┘
-```
+1. Test the dApp frontend.
 
-Time to go on the dapp to test
+   Regenerate types and run the frontend.
 
-Regenerate types and run the frontend
+   ```bash
+   taq generate types ./app/src
+   cd app
+   yarn dev
+   ```
 
-```bash
-taq generate types ./app/src
-cd app
-yarn dev
-```
+1. Run the user sequence on the web page:
 
-Run the user sequence on the web page :
+   1. Mint 1 ticket.
+   1. wait for confirmation.
+   1. poke a contract address.
+   1. wait for confirmation.
+   1. click on button to refresh the contract list.
+      So far so good, you have the same result as previous training .
 
-1. Mint 1 ticket
-1. wait for confirmation
-1. poke a contract address
-1. wait for confirmation
-1. click on button to refresh the contract list
-   So far so good, you have the same result as previous training :ok_hand:
+   Update the lambda function in background with the CLI though the new admin entrypoint. Return a fixed string this time, just for demo purpose and verify that the lambda executed is returning another output.
 
-Now, we update the lambda function in background with the CLI with our new admin entrypoint. We return a fixed string this time, just for demo purpose and verify that the lambda executed is returning another output
+1. Edit the file `pokeGame.parameterList.jsligo`.
 
-Edit the file `pokeGame.parameterList.jsligo`
+   ```ligolang
+   #import "pokeGame.jsligo" "Contract"
+   const default_parameter : parameter_of Contract = UpdateFeedbackFunction((_oracleAddress : address) : string => "YEAH!!!");
+   ```
 
-```ligolang
-#import "pokeGame.jsligo" "Contract"
-const default_parameter : parameter_of Contract = UpdateFeedbackFunction((_oracleAddress : address) : string => "YEAH!!!");
-```
+1. Compile all and call an init transaction.
 
-Compile all and call an init transaction
+   ```bash
+   TAQ_LIGO_IMAGE=ligolang/ligo:1.1.0 taq compile pokeGame.jsligo
+   taq call pokeGame --param pokeGame.parameter.default_parameter.tz -e testing
+   ```
 
-```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:1.0.0 taq compile pokeGame.jsligo
-taq call pokeGame --param pokeGame.parameter.default_parameter.tz -e testing
-```
+   ```logs
+   ┌────────────────┬──────────────────────────────────────┬─────────────────────────────────────────┬────────────┬────────────────┬────────────────────────────────┐
+   │ Contract Alias │ Contract Address                     │ Parameter                               │ Entrypoint │ Mutez Transfer │ Destination                    │
+   ├────────────────┼──────────────────────────────────────┼─────────────────────────────────────────┼────────────┼────────────────┼────────────────────────────────┤
+   │ pokeGame       │ KT1VjFawYQ4JeEEAVchqaYK1NmXCENm2ufer │ (Left { DROP ; PUSH string "YEAH!!!" }) │ default    │ 0              │ https://ghostnet.ecadinfra.com │
+   │                │                                      │                                         │            │                │                                │
+   └────────────────┴──────────────────────────────────────┴─────────────────────────────────────────┴────────────┴────────────────┴────────────────────────────────┘
+   ```
 
-```logs
-┌────────────────┬──────────────────────────────────────┬─────────────────────────────────────────┬────────────┬────────────────┬────────────────────────────────┐
-│ Contract Alias │ Contract Address                     │ Parameter                               │ Entrypoint │ Mutez Transfer │ Destination                    │
-├────────────────┼──────────────────────────────────────┼─────────────────────────────────────────┼────────────┼────────────────┼────────────────────────────────┤
-│ pokeGame       │ KT1VjFawYQ4JeEEAVchqaYK1NmXCENm2ufer │ (Left { DROP ; PUSH string "YEAH!!!" }) │ default    │ 0              │ https://ghostnet.ecadinfra.com │
-│                │                                      │                                         │            │                │                                │
-└────────────────┴──────────────────────────────────────┴─────────────────────────────────────────┴────────────┴────────────────┴────────────────────────────────┘
-```
+1. Run the user sequence on the web page:
 
-Run the user sequence on the web page :
+   1. Mint 1 ticket.
+   1. Wait for confirmation.
+   1. Poke a contract address.
+   1. Wait for confirmation.
+   1. Click on button to refresh the contract list.
 
-1. Mint 1 ticket
-1. wait for confirmation
-1. poke a contract address
-1. wait for confirmation
-1. click on button to refresh the contract list
+   You see that the feedback has changed to `YEAH!!!`.
 
-You see that the feedback has changed `YEAH!!!` :metal:
+1. Optional: fix the units tests.
 
-> Optional : fix your units tests
+## Proxy pattern
 
-## Proxy pattern :star::star:
-
-Goal is to have a proxy contract maintaining the application lifecycle, it is an enhancement of previous naive solution. We will have to deploy a complete new smartcontract, but this time we are not talking directly to this contract. Instead, the proxy remains the default entrypoint and keep same address.
+The goal is to have a proxy contract maintaining the application lifecycle, it is an enhancement of previous naive solution.
+Deploy a complete new smart contract, but this time, the end user is not interacting directly with this contract. Instead, the proxy becomes the default entrypoint and keep same facing address.
 
 Init
 
@@ -373,279 +370,281 @@ sequenceDiagram
   Note left of SmartContractV1 : storage.tzip18.contractNext = contractV2Address
 ```
 
-> Note : 2 location choices for the smart contract storage :
+> Note: 2 location choices for the smart contract storage:
 >
-> - at proxy level : storage stays unique and immutable
-> - at end-contract level : storage is new at each new version and need to be migrated
+> - At proxy level: storage stays unique and immutable.
+> - At end-contract level: storage is new at each new version and need to be migrated.
 
 ### Pros/Cons
 
-| Pros                                                                     | Cons                                                                                                                                                    |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Migration is transparent for frontend                                    | smart contract code `Tezos.SENDER` will always refer to the proxy, so need to be careful                                                                |
-| if storage is unchanged, we can keep storage at proxy level without cost | If storage changes, need to migrate storage from old contract to new contract and it costs money and having storage at proxy level is not more possible |
-| keep same contract address                                               | If contract interface changed, we need to re-originating the proxy                                                                                      |
-|                                                                          | we need a lot of types in bytes playing with PACKING/UNPACKING and we lose all type checking                                                            |
-|                                                                          | IDE or tools do not work anymore on lambda code. Michelson does not protect us from some kinds of mistakes anymore                                      |
-|                                                                          | Unexpected changes can cause other contract callers to fail, we lose interface benefits                                                                 |
-|                                                                          | Harder to audit and trace, can lead to really big security nd Trust issues                                                                              |
-|                                                                          | Storing everything as bytes is limited to PACK-able types like nat, string, list, set, map                                                              |
+| Pros                                                                      | Cons                                                                                                                                                    |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Migration is transparent for frontend                                     | smart contract code `Tezos.SENDER` always refers to the proxy, so you need to be careful                                                                |
+| if the storage is unchanged, keep the storage at proxy level without cost | If storage changes, need to migrate storage from old contract to new contract and it costs money and having storage at proxy level is not more possible |
+| keep same contract address                                                | If a contract interface changed, then re-originate the proxy                                                                                            |
+|                                                                           | No all of types are compatible with PACKING/UNPACKING, and type checking is lost                                                                        |
+|                                                                           | IDE or tools do not work anymore on lambda code. Michelson does not protect us from some kinds of mistakes anymore                                      |
+|                                                                           | Unexpected changes can cause other contract callers to fail, Interface benefits are lost                                                                |
+|                                                                           | Harder to audit and trace, can lead to really big security nd Trust issues                                                                              |
+|                                                                           | Storing everything as bytes is limited to PACK-able types like nat, string, list, set, map                                                              |
 
 ### Implementation
 
-#### Rewrite your smart contract to make it generic
+#### Rewrite the smart contract to make it generic
 
-- Rename your file `pokeGame.jsligo` to `pokeGameLambda.jsligo` (to save it somewhere and watch it later if needed ...)
-- Remove pokeGame.parameterList.jsligo
+1. Rename the file `pokeGame.jsligo` to `pokeGameLambda.jsligo` , as you can have a look on it later.
 
-Get back the original version of `pokeGame.jsligo` from previous training (again, it will be easier to start from here)
+1. Remove pokeGame.parameterList.jsligo.
 
-Create a new file `tzip18.jsligo`
+1. Get back the original version of `pokeGame.jsligo` from previous training as it is easier to start from here.
 
-```bash
-taq create contract tzip18.jsligo
-```
+1. Create a new file `tzip18.jsligo`.
 
-Edit the file
+   ```bash
+   taq create contract tzip18.jsligo
+   ```
 
-```ligolang
-// Tzip 18 types
-export type tzip18 = {
-  proxy: address,
-  version: nat,
-  contractPrevious: option<address>,
-  contractNext: option<address>
-};
-```
+1. Edit the file.
 
-This type will be included on all smartcontract storages to track the proxy address and the last contract version. It will be used to block old smart contract instances to be called, and check who can call who
+   ```ligolang
+   // Tzip 18 types
+   export type tzip18 = {
+     proxy: address,
+     version: nat,
+     contractPrevious: option<address>,
+     contractNext: option<address>
+   };
+   ```
 
-Get back to `pokeGame.jsligo` and import this file on first line
+   This type is included on all smart contract storages to track the proxy address and the last contract version. It is used to block old smart contract instances to be called, and check who can call who.
 
-```ligolang
-#import "./tzip18.jsligo" "TZIP18"
-```
+1. Get back to `pokeGame.jsligo` and import this file on first line.
 
-add the type on the storage definition
+   ```ligolang
+   #import "./tzip18.jsligo" "TZIP18"
+   ```
 
-```ligolang
-export type storage = {
-  pokeTraces: map<address, pokeMessage>,
-  feedback: string,
-  ticketOwnership: map<address, ticket<string>>, //ticket of claims
-  tzip18: TZIP18.tzip18
-};
-```
+1. Add the type on the storage definition.
 
-Fix all missing field tzip18 on storage structure in the file
+   ```ligolang
+   export type storage = {
+     pokeTraces: map<address, pokeMessage>,
+     feedback: string,
+     ticketOwnership: map<address, ticket<string>>, //ticket of claims
+     tzip18: TZIP18.tzip18
+   };
+   ```
 
-```ligolang
-const poke = (
-  _: { entrypointName: string, payload: bytes },
-  [pokeTraces, feedback, ticketOwnership, tzip18]: [
-    map<address, pokeMessage>,
-    string,
-    map<address, ticket<string>>,
-    TZIP18.tzip18
-  ]
-): return_ => {
-  //extract opt ticket from map
+1. Fix all missing field tzip18 on storage structure in the file.
 
-  const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
-    Map.get_and_update(
-      Tezos.get_source(),
-      None() as option<ticket<string>>,
-      ticketOwnership
-    );
-  return match(t) {
-    when (None()):
-      failwith("User does not have tickets => not allowed")
-    when (Some(_t)):
-      [
-        list([]) as list<operation>,
-        {
-          //let t burn
+   ```ligolang
+   const poke = (
+     _: { entrypointName: string, payload: bytes },
+     [pokeTraces, feedback, ticketOwnership, tzip18]: [
+       map<address, pokeMessage>,
+       string,
+       map<address, ticket<string>>,
+       TZIP18.tzip18
+     ]
+   ): return_ => {
+     //extract opt ticket from map
 
-          feedback,
-          pokeTraces: Map.add(
-            Tezos.get_source(),
-            { receiver: Tezos.get_self_address(), feedback: "" },
-            pokeTraces
-          ),
-          ticketOwnership: tom,
-          tzip18,
-        }
-      ]
-  };
-};
+     const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
+       Map.get_and_update(
+         Tezos.get_source(),
+         None() as option<ticket<string>>,
+         ticketOwnership
+       );
+     return match(t) {
+       when (None()):
+         failwith("User does not have tickets => not allowed")
+       when (Some(_t)):
+         [
+           list([]) as list<operation>,
+           {
+             //let t burn
 
-@no_mutation
-const pokeAndGetFeedback = (
-  oracleAddress: address,
-  [pokeTraces, feedback, ticketOwnership, tzip18]: [
-    map<address, pokeMessage>,
-    string,
-    map<address, ticket<string>>,
-    TZIP18.tzip18
-  ]
-): return_ => {
-  //extract opt ticket from map
+             feedback,
+             pokeTraces: Map.add(
+               Tezos.get_source(),
+               { receiver: Tezos.get_self_address(), feedback: "" },
+               pokeTraces
+             ),
+             ticketOwnership: tom,
+             tzip18,
+           }
+         ]
+     };
+   };
 
-  const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
-    Map.get_and_update(
-      Tezos.get_source(),
-      None() as option<ticket<string>>,
-      ticketOwnership
-    );
-  //Read the feedback view
+   @no_mutation
+   const pokeAndGetFeedback = (
+     oracleAddress: address,
+     [pokeTraces, feedback, ticketOwnership, tzip18]: [
+       map<address, pokeMessage>,
+       string,
+       map<address, ticket<string>>,
+       TZIP18.tzip18
+     ]
+   ): return_ => {
+     //extract opt ticket from map
 
-  let feedbackOpt: option<bytes> =
-    Tezos.call_view("getView", "feedback", oracleAddress);
-  return match(t) {
-    when (None()):
-      failwith("User does not have tickets => not allowed")
-    when (Some(_t)):
-      match(feedbackOpt) {
-        when (Some(f)):
-          do {
-            let feedbackMessage = {
-              receiver: oracleAddress,
-              feedback: Option.unopt(Bytes.unpack(f) as option<string>),
-            };
-            return [
-              list([]) as list<operation>,
-              {
-                feedback,
-                pokeTraces: Map.add(
-                  Tezos.get_source(),
-                  feedbackMessage,
-                  pokeTraces
-                ),
-                ticketOwnership: tom,
-                tzip18,
-              }
-            ]
-          }
-        when (None()):
-          failwith("Cannot find view feedback on given oracle address")
-      }
-  };
-};
+     const [t, tom]: [option<ticket<string>>, map<address, ticket<string>>] =
+       Map.get_and_update(
+         Tezos.get_source(),
+         None() as option<ticket<string>>,
+         ticketOwnership
+       );
+     //Read the feedback view
 
-const init = (
-  [a, ticketCount]: [address, nat],
-  [pokeTraces, feedback, ticketOwnership, tzip18]: [
-    map<address, pokeMessage>,
-    string,
-    map<address, ticket<string>>,
-    TZIP18.tzip18
-  ]
-): return_ => {
-  return ticketCount == (0 as nat) ? [
-      list([]) as list<operation>,
-      { feedback, pokeTraces, ticketOwnership, tzip18 }
-    ] : [
-      list([]) as list<operation>,
-      {
-        feedback,
-        pokeTraces,
-        ticketOwnership: Map.add(
-          a,
-          Option.unopt(Tezos.create_ticket("can_poke", ticketCount)),
-          ticketOwnership
-        ),
-        tzip18,
-      }
-    ]
-};
-```
+     let feedbackOpt: option<bytes> =
+       Tezos.call_view("getView", "feedback", oracleAddress);
+     return match(t) {
+       when (None()):
+         failwith("User does not have tickets => not allowed")
+       when (Some(_t)):
+         match(feedbackOpt) {
+           when (Some(f)):
+             do {
+               let feedbackMessage = {
+                 receiver: oracleAddress,
+                 feedback: Option.unopt(Bytes.unpack(f) as option<string>),
+               };
+               return [
+                 list([]) as list<operation>,
+                 {
+                   feedback,
+                   pokeTraces: Map.add(
+                     Tezos.get_source(),
+                     feedbackMessage,
+                     pokeTraces
+                   ),
+                   ticketOwnership: tom,
+                   tzip18,
+                 }
+               ]
+             }
+           when (None()):
+             failwith("Cannot find view feedback on given oracle address")
+         }
+     };
+   };
 
-- The view call signature is different :
-  - it returns an optional bytes
-  - calling "getView" generic view exposed by the proxy
-  - passing the viewname "feedback" (to dispatch to the correct function once you reach the code that will be executed)
-  - finally, unpack the bytes result and cast it to string
+   const init = (
+     [a, ticketCount]: [address, nat],
+     [pokeTraces, feedback, ticketOwnership, tzip18]: [
+       map<address, pokeMessage>,
+       string,
+       map<address, ticket<string>>,
+       TZIP18.tzip18
+     ]
+   ): return_ => {
+     return ticketCount == (0 as nat) ? [
+         list([]) as list<operation>,
+         { feedback, pokeTraces, ticketOwnership, tzip18 }
+       ] : [
+         list([]) as list<operation>,
+         {
+           feedback,
+           pokeTraces,
+           ticketOwnership: Map.add(
+             a,
+             Option.unopt(Tezos.create_ticket("can_poke", ticketCount)),
+             ticketOwnership
+           ),
+           tzip18,
+         }
+       ]
+   };
+   ```
 
-As we are doing generic calls, we have to use a `unique` dispatch function and not use multiple @entry
+   The view call signature is different:
 
-Write a main function annotated with @entry.
-The parameter will be a string representing the entrypoint name and some generic bytes that will will need to cast later.
-In a way, we break a bit compiler checks, but if we code well and cast stuff as earliest as possible then we mitigate risks
+   - It returns an optional bytes.
+   - Calling **getView** generic view exposed by the proxy.
+   - Passing the view named **feedback** (to dispatch to the correct function once you reach the code that will be executed).
+   - Finally, unpack the bytes result and cast it to string.
 
-```ligolang
-@entry
-export const main = (action: { entrypointName: string, payload: bytes }, store: storage): return_ => {
-  //destructure the storage to avoid DUP
+   With generic calls, a **unique** dispatch function has to be used and not multiple **@entry**.
 
-  const { pokeTraces, feedback, ticketOwnership, tzip18 } = store;
-  const canBeCalled: bool =
-    match(tzip18.contractNext) {
-      when (None()):
-        false // I am the last version, but I cannot be called directly (or is my proxy, see later)
+1. Write a main function annotated with @entry.
+   The parameter is a string representing the entrypoint name and some generic bytes that required to be cast later on.
+   In a way, compiler checks are broken, so the code is to be well written and well cast as earliest as possible to mitigate risks.
 
-      when (Some(contract)):
-        do {
-          if (Tezos.get_sender() == contract) {
-            return true;
-          } // I am not the last but a parent contract is calling me
-           else {
-            return false;
-          }
-        } // I am not the last version and a not-parent is trying to call me
+   ```ligolang
+   @entry
+   export const main = (action: { entrypointName: string, payload: bytes }, store: storage): return_ => {
+     //destructure the storage to avoid DUP
 
-    };
-  if (Tezos.get_sender() != tzip18.proxy && ! canBeCalled) {
-    return failwith("Only the proxy or contractNext can call this contract");
-  };
-  if (action.entrypointName == "Poke") {
-    return poke(action, [pokeTraces, feedback, ticketOwnership, tzip18]);
-  } else {
-    if (action.entrypointName == "PokeAndGetFeedback") {
-      return match(Bytes.unpack(action.payload) as option<address>) {
-        when (None()):
-          failwith("Cannot find the address parameter for PokeAndGetFeedback")
-        when (Some(other)):
-          pokeAndGetFeedback(
-            other,
-            [pokeTraces, feedback, ticketOwnership, tzip18]
-          )
-      };
-    } else {
-      if (action.entrypointName == "Init") {
-        return match(Bytes.unpack(action.payload) as option<[address, nat]>) {
-          when (None()):
-            failwith("Cannot find the address parameter for changeVersion")
-          when (Some(initParam)):
-            init(
-              [initParam[0], initParam[1]],
-              [pokeTraces, feedback, ticketOwnership, tzip18]
-            )
-        };
-      } else {
-        if (action.entrypointName == "changeVersion") {
-          return match(Bytes.unpack(action.payload) as option<address>) {
-            when (None()):
-              failwith("Cannot find the address parameter for changeVersion")
-            when (Some(other)):
-              changeVersion(
-                other,
-                [pokeTraces, feedback, ticketOwnership, tzip18]
-              )
-          };
-        } else {
-          return failwith("Non-existant method");
-        }
-      }
-    }
-  }
-};
-```
+     const { pokeTraces, feedback, ticketOwnership, tzip18 } = store;
+     const canBeCalled: bool =
+       match(tzip18.contractNext) {
+         when (None()):
+           false // I am the last version, but I cannot be called directly (or is my proxy, see later)
 
-- We start by checking that only the proxy contract or the parent of this contract can call the main function. We enable this feature in case the future contract wants to run a migration _script_ itself, reading from children storage (looking at `tzip18.contractPrevious` field ).
-- As we don't have variant anymore, we break the pattern matching and do `if...else` statement
-- When a payload is passed, we unpack it and cast it with `(Bytes.unpack(action.payload) as option<MY_TYPE_HERE>)`. It means the caller and callee agree on payload structure for each endpoint
+         when (Some(contract)):
+           do {
+             if (Tezos.get_sender() == contract) {
+               return true;
+             } // I am not the last but a parent contract is calling me
+             else {
+               return false;
+             }
+           } // I am not the last version and a not-parent is trying to call me
 
-Add the last missing function changing the version of this contract and make it obsolete (just before the main function)
+       };
+     if (Tezos.get_sender() != tzip18.proxy && ! canBeCalled) {
+       return failwith("Only the proxy or contractNext can call this contract");
+     };
+     if (action.entrypointName == "Poke") {
+       return poke(action, [pokeTraces, feedback, ticketOwnership, tzip18]);
+     } else {
+       if (action.entrypointName == "PokeAndGetFeedback") {
+         return match(Bytes.unpack(action.payload) as option<address>) {
+           when (None()):
+             failwith("Cannot find the address parameter for PokeAndGetFeedback")
+           when (Some(other)):
+             pokeAndGetFeedback(
+               other,
+               [pokeTraces, feedback, ticketOwnership, tzip18]
+             )
+         };
+       } else {
+         if (action.entrypointName == "Init") {
+           return match(Bytes.unpack(action.payload) as option<[address, nat]>) {
+             when (None()):
+               failwith("Cannot find the address parameter for changeVersion")
+             when (Some(initParam)):
+               init(
+                 [initParam[0], initParam[1]],
+                 [pokeTraces, feedback, ticketOwnership, tzip18]
+               )
+           };
+         } else {
+           if (action.entrypointName == "changeVersion") {
+             return match(Bytes.unpack(action.payload) as option<address>) {
+               when (None()):
+                 failwith("Cannot find the address parameter for changeVersion")
+               when (Some(other)):
+                 changeVersion(
+                   other,
+                   [pokeTraces, feedback, ticketOwnership, tzip18]
+                 )
+             };
+           } else {
+             return failwith("Non-existant method");
+           }
+         }
+       }
+     }
+   };
+   ```
+
+   - Start checking that only the proxy contract or the parent of this contract can call the main function. Enable this feature in case the future contract wants to run a migration _script_ itself, reading from children storage (looking at `tzip18.contractPrevious` field ).
+   - With no more variant, the pattern matching is broken and `if...else` statement has be used instead.
+   - When a payload is passed, unpack it and cast it with `(Bytes.unpack(action.payload) as option<MY_TYPE_HERE>)`. It means the caller and callee agree on payload structure for each endpoint.
+
+1. Add the last missing function changing the version of this contract and make it obsolete (just before the main function).
 
 ```ligolang
 /**
@@ -673,7 +672,7 @@ const changeVersion = (
 };
 ```
 
-Finally, change the view to a generic one and do a `if...else` on `viewName` argument
+11. Change the view to a generic one and do a `if...else` on `viewName` argument.
 
 ```ligolang
 @view
@@ -684,9 +683,9 @@ const getView = (viewName: string, store: storage): bytes => {
 };
 ```
 
-Change the initial storage
+12. Change the initial storage.
 
-> Note : for the moment we initialize the proxy address to a fake KT1 address because we have not yet deploy the proxy
+> Note: for the moment, initialize the proxy address to a fake KT1 address because the proxy is not yet deployed.
 
 ```ligolang
 #import "pokeGame.jsligo" "Contract"
@@ -704,209 +703,210 @@ const default_storage = {
 };
 ```
 
-Compile
+13. Compile.
 
 ```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:1.0.0 taq compile pokeGame.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:1.1.0 taq compile pokeGame.jsligo
 ```
 
-All good :ok_hand:
+All good.
 
-#### Second part, we write the unique proxy
+#### Write the unique proxy
 
-Create a file `proxy.jsligo`
+1. Create a file `proxy.jsligo`.
 
-```bash
-taq create contract proxy.jsligo
-```
+   ```bash
+   taq create contract proxy.jsligo
+   ```
 
-Let's define the storage and entrypoints on it
+1. Define the storage and entrypoints on it.
 
-```ligolang
-export type storage = {
-  governance: address, //admins
-  entrypoints: big_map<string, entrypointType> //interface schema map
-};
+   ```ligolang
+   export type storage = {
+     governance: address, //admins
+     entrypoints: big_map<string, entrypointType> //interface schema map
+   };
 
-type _return = [list<operation>, storage];
-```
+   type _return = [list<operation>, storage];
+   ```
 
-- storage :
-  - holds a /or several admin
-  - the interface schema map for all underlying entrypoints
+   The storage:
 
-> Note on parameters : we use @entry syntax, parameters will be 2 functions
->
-> - call : forward any request to the right underlying entrypoint
-> - upgrade : admin endpoint to update the interface schema map or change smartcontract version
+   - Holds a /or several admin.
+   - Maintains the interface schema map for all underlying entrypoints.
 
-Add our missing types juste above
+   > Note on parameters: use @entry syntax, parameters is 2 functions.
+   >
+   > - **call**: forward any request to the right underlying entrypoint.
+   > - **upgrade**: admin endpoint to update the interface schema map or change smart contract version.
 
-```ligolang
-export type callContract = {
-  entrypointName: string,
-  payload: bytes
-};
+1. Add our missing types just above.
 
-export type entrypointType = {
-  method: string,
-  addr: address
-};
+   ```ligolang
+   export type callContract = {
+     entrypointName: string,
+     payload: bytes
+   };
 
-export type entrypointOperation = {
-  name: string,
-  isRemoved: bool,
-  entrypoint: option<entrypointType>
-};
+   export type entrypointType = {
+     method: string,
+     addr: address
+   };
 
-export type changeVersion = {
-  oldAddr: address,
-  newAddr: address
-};
-```
+   export type entrypointOperation = {
+     name: string,
+     isRemoved: bool,
+     entrypoint: option<entrypointType>
+   };
 
-- callContract : payload from user executing an entrypoint (name+payloadBytes)
-- entrypointType : payload to be able to call an underlying contract (name+address)
-- entrypointOperation : change the entrypoint interface map (new state of the map)
-- changeVersion : change the smartcontract version (old/new addresses)
+   export type changeVersion = {
+     oldAddr: address,
+     newAddr: address
+   };
+   ```
 
-Add the `Call`entrypoint (simple forward). (Before main function)
+   - **callContract**: payload from user executing an entrypoint (name+payloadBytes).
+   - **entrypointType**: payload to be able to call an underlying contract (name+address).
+   - **entrypointOperation**: change the entrypoint interface map (new state of the map).
+   - **changeVersion**: change the smart contract version (old/new addresses).
 
-```ligolang
-// the proxy function
+1. Add the `Call`entrypoint (simple forward). (Before main function).
 
-@entry
-const callContract = (param: callContract, store: storage): _return => {
-  return match(Big_map.find_opt(param.entrypointName, store.entrypoints)) {
-    when (None):
-      failwith("No entrypoint found")
-    when (Some(entry)):
-      match(
-        Tezos.get_contract_opt(entry.addr) as option<contract<callContract>>
-      ) {
-        when (None):
-          failwith("No contract found at this address")
-        when (Some(contract)):
-          [
-            list(
-              [
-                Tezos.transaction(
-                  { entrypointName: entry.method, payload: param.payload },
-                  Tezos.get_amount(),
-                  contract
-                )
-              ]
-            ) as list<operation>,
-            store
-          ]
-      }
-  }
-};
-```
+   ```ligolang
+   // the proxy function
 
-It gets the entrypoint to call and the payload in bytes and just forward it to the right location
+   @entry
+   const callContract = (param: callContract, store: storage): _return => {
+     return match(Big_map.find_opt(param.entrypointName, store.entrypoints)) {
+       when (None):
+         failwith("No entrypoint found")
+       when (Some(entry)):
+         match(
+           Tezos.get_contract_opt(entry.addr) as option<contract<callContract>>
+         ) {
+           when (None):
+             failwith("No contract found at this address")
+           when (Some(contract)):
+             [
+               list(
+                 [
+                   Tezos.transaction(
+                     { entrypointName: entry.method, payload: param.payload },
+                     Tezos.get_amount(),
+                     contract
+                   )
+                 ]
+               ) as list<operation>,
+               store
+             ]
+         }
+     }
+   };
+   ```
 
-Then, write the `upgrade` entrypoint. (Before main function)
+   It gets the entrypoint to call and the payload in bytes and just forward it to the right location.
 
-```ligolang
-/**
- * Function for administrators to update entrypoints and change current contract version
- **/
+1. Then, write the `upgrade` entrypoint. (Before main function).
 
-@entry
-const upgrade = (
-  param: [list<entrypointOperation>, option<changeVersion>],
-  store: storage
-): _return => {
-  if (Tezos.get_sender() != store.governance) {
-    return failwith("Permission denied")
-  };
-  let [upgraded_ep_list, changeVersionOpt] = param;
-  const update_storage = (
-    l: list<entrypointOperation>,
-    m: big_map<string, entrypointType>
-  ): big_map<string, entrypointType> => {
-    return match(l) {
-      when ([]):
-        m
-      when ([x, ...xs]):
-        do {
-          let b: big_map<string, entrypointType> =
-            match(x.entrypoint) {
-              when (None):
-                do {
-                  if (x.isRemoved == true) {
-                    return Big_map.remove(x.name, m)
-                  } else {
-                    return m
-                  }
-                } //mean to remove or unchanged
+   ```ligolang
+   /**
+   * Function for administrators to update entrypoints and change current contract version
+   **/
 
-              when (Some(_ep)):
-                do {
-                  //means to add new or unchanged
+   @entry
+   const upgrade = (
+     param: [list<entrypointOperation>, option<changeVersion>],
+     store: storage
+   ): _return => {
+     if (Tezos.get_sender() != store.governance) {
+       return failwith("Permission denied")
+     };
+     let [upgraded_ep_list, changeVersionOpt] = param;
+     const update_storage = (
+       l: list<entrypointOperation>,
+       m: big_map<string, entrypointType>
+     ): big_map<string, entrypointType> => {
+       return match(l) {
+         when ([]):
+           m
+         when ([x, ...xs]):
+           do {
+             let b: big_map<string, entrypointType> =
+               match(x.entrypoint) {
+                 when (None):
+                   do {
+                     if (x.isRemoved == true) {
+                       return Big_map.remove(x.name, m)
+                     } else {
+                       return m
+                     }
+                   } //mean to remove or unchanged
 
-                  if (x.isRemoved == false) {
-                    return match(x.entrypoint) {
-                      when (None):
-                        m
-                      when (Some(c)):
-                        Big_map.update(x.name, Some(c), m)
-                    }
-                  } else {
-                    return m
-                  }
-                }
-            };
-          return update_storage(xs, b)
-        }
-    }
-  };
-  //update the entrpoint interface map
+                 when (Some(_ep)):
+                   do {
+                     //means to add new or unchanged
 
-  const new_entrypoints: big_map<string, entrypointType> =
-    update_storage(upgraded_ep_list, store.entrypoints);
-  //check if version needs to be changed
+                     if (x.isRemoved == false) {
+                       return match(x.entrypoint) {
+                         when (None):
+                           m
+                         when (Some(c)):
+                           Big_map.update(x.name, Some(c), m)
+                       }
+                     } else {
+                       return m
+                     }
+                   }
+               };
+             return update_storage(xs, b)
+           }
+       }
+     };
+     //update the entrypoint interface map
 
-  return match(changeVersionOpt) {
-    when (None):
-      [list([]) as list<operation>, { ...store, entrypoints: new_entrypoints }]
-    when (Some(change)):
-      do {
-        let op_change: operation =
-          match(
-            Tezos.get_contract_opt(change.oldAddr) as
-              option<contract<callContract>>
-          ) {
-            when (None):
-              failwith("No contract found at this address")
-            when (Some(contract)):
-              do {
-                let amt = Tezos.get_amount();
-                let payload: address = change.newAddr;
-                return Tezos.transaction(
-                  {
-                    entrypointName: "changeVersion",
-                    payload: Bytes.pack(payload)
-                  },
-                  amt,
-                  contract
-                )
-              }
-          };
-        return [
-          list([op_change]) as list<operation>,
-          { ...store, entrypoints: new_entrypoints }
-        ]
-      }
-  }
-};
-```
+     const new_entrypoints: big_map<string, entrypointType> =
+       update_storage(upgraded_ep_list, store.entrypoints);
+     //check if version needs to be changed
 
-- It loops over the new interface schema to update and do so.
-- If a changeVersion is required, it calls the old contract to take the new version configuration (and desactivate itself so)
+     return match(changeVersionOpt) {
+       when (None):
+         [list([]) as list<operation>, { ...store, entrypoints: new_entrypoints }]
+       when (Some(change)):
+         do {
+           let op_change: operation =
+             match(
+               Tezos.get_contract_opt(change.oldAddr) as
+                 option<contract<callContract>>
+             ) {
+               when (None):
+                 failwith("No contract found at this address")
+               when (Some(contract)):
+                 do {
+                   let amt = Tezos.get_amount();
+                   let payload: address = change.newAddr;
+                   return Tezos.transaction(
+                     {
+                       entrypointName: "changeVersion",
+                       payload: Bytes.pack(payload)
+                     },
+                     amt,
+                     contract
+                   )
+                 }
+             };
+           return [
+             list([op_change]) as list<operation>,
+             { ...store, entrypoints: new_entrypoints }
+           ]
+         }
+     }
+   };
+   ```
 
-Last change is to expose any view from underlying contract (as we have one), declare it at the end of the file
+   - It loops over the new interface schema to update and do so.
+   - If a changeVersion is required, it calls the old contract to take the new version configuration (and it disables itself).
+
+1. Last change is to expose any view from underlying contract, declare it at the end of the file.
 
 ```ligolang
 @view
@@ -922,18 +922,18 @@ export const getView = (viewName: string, store: storage): bytes => {
 };
 ```
 
-- we expose a generic view on the proxy and we take the name of the final function we want to call on the underlying contract (as the smart contract view is not unreachable/hidden by the proxy contract)
-- we search for an exposed view on the interface schema to retrieve the contract address, then we call the view and return the result as an "exposed" view
+- Expose a generic view on the proxy and pass the name of the final function called on the underlying contract (as the smart contract view is not unreachable/hidden by the proxy contract).
+- Search for an exposed view on the interface schema to retrieve the contract address, then call the view and return the result as an _exposed_ view.
 
-Compile
+7. Compile.
 
 ```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:1.0.0 taq compile proxy.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:1.1.0 taq compile proxy.jsligo
 ```
 
-#### We have all ready for deployment :rocket:
+#### Deployment
 
-Edit `proxy.storageList.jsligo` to this below ( **!!! be careful to point `governance` to your taq default user account !!!**)
+1. Edit `proxy.storageList.jsligo` to this below ( **!!! be careful to point the _governance_ address to your taq default user account !!!**).
 
 ```ligolang
 #include "proxy.jsligo"
@@ -943,438 +943,444 @@ const default_storage = {
 };
 ```
 
-Compile and deploy it
+1. Compile and deploy it.
 
-```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:1.0.0 taq compile proxy.jsligo
-taq deploy proxy.tz -e testing
-```
+   ```bash
+   TAQ_LIGO_IMAGE=ligolang/ligo:1.1.0 taq compile proxy.jsligo
+   taq deploy proxy.tz -e testing
+   ```
 
-```logs
-┌──────────┬──────────────────────────────────────┬───────┬──────────────────┬────────────────────────────────┐
-│ Contract │ Address                              │ Alias │ Balance In Mutez │ Destination                    │
-├──────────┼──────────────────────────────────────┼───────┼──────────────────┼────────────────────────────────┤
-│ proxy.tz │ KT1BPoz3Yi8LPimxCiDvpmutbCNY8x3ghKyQ │ proxy │ 0                │ https://ghostnet.ecadinfra.com │
-└──────────┴──────────────────────────────────────┴───────┴──────────────────┴────────────────────────────────┘
-```
+   ```logs
+   ┌──────────┬──────────────────────────────────────┬───────┬──────────────────┬────────────────────────────────┐
+   │ Contract │ Address                              │ Alias │ Balance In Mutez │ Destination                    │
+   ├──────────┼──────────────────────────────────────┼───────┼──────────────────┼────────────────────────────────┤
+   │ proxy.tz │ KT1BPoz3Yi8LPimxCiDvpmutbCNY8x3ghKyQ │ proxy │ 0                │ https://ghostnet.ecadinfra.com │
+   └──────────┴──────────────────────────────────────┴───────┴──────────────────┴────────────────────────────────┘
+   ```
 
-Keep this **proxy address**, as you will need to report it below on `tzip18.proxy` field :warning:
+   Keep this **proxy address**, as you need to report it below on `tzip18.proxy` field.
 
-Now you can deploy a smartcontract V1. ( :warning: Change with your **proxy address** on the file `pokeGame.storageList.jsligo` like here below )
+1. Deploy a smart contract V1. ( :warning: Change with the **proxy address** on the file `pokeGame.storageList.jsligo` like here below ).
 
-```ligolang
-#import "pokeGame.jsligo" "Contract"
+   ```ligolang
+   #import "pokeGame.jsligo" "Contract"
 
-const default_storage = {
-    pokeTraces: Map.empty as map<address, Contract.pokeMessage>,
-    feedback: "kiss",
-    ticketOwnership: Map.empty as map<address, ticket<string>>, //ticket of claims
-    tzip18: {
-        proxy: "KT1BPoz3Yi8LPimxCiDvpmutbCNY8x3ghKyQ" as address,
-        version: 1 as nat,
-        contractPrevious: None() as option<address>,
-        contractNext: None() as option<address>
-    }
-};
-```
+   const default_storage = {
+       pokeTraces: Map.empty as map<address, Contract.pokeMessage>,
+       feedback: "kiss",
+       ticketOwnership: Map.empty as map<address, ticket<string>>, //ticket of claims
+       tzip18: {
+           proxy: "KT1BPoz3Yi8LPimxCiDvpmutbCNY8x3ghKyQ" as address,
+           version: 1 as nat,
+           contractPrevious: None() as option<address>,
+           contractNext: None() as option<address>
+       }
+   };
+   ```
 
-Deploy the underlying V1 contract
+1. Deploy the underlying V1 contract.
 
-```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:1.0.0 taq compile pokeGame.jsligo
-taq deploy pokeGame.tz -e testing
-```
+   ```bash
+   TAQ_LIGO_IMAGE=ligolang/ligo:1.1.0 taq compile pokeGame.jsligo
+   taq deploy pokeGame.tz -e testing
+   ```
 
-```logs
-┌─────────────┬──────────────────────────────────────┬──────────┬──────────────────┬────────────────────────────────┐
-│ Contract    │ Address                              │ Alias    │ Balance In Mutez │ Destination                    │
-├─────────────┼──────────────────────────────────────┼──────────┼──────────────────┼────────────────────────────────┤
-│ pokeGame.tz │ KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK │ pokeGame │ 0                │ https://ghostnet.ecadinfra.com │
-└─────────────┴──────────────────────────────────────┴──────────┴──────────────────┴────────────────────────────────┘
-```
+   ```logs
+   ┌─────────────┬──────────────────────────────────────┬──────────┬──────────────────┬────────────────────────────────┐
+   │ Contract    │ Address                              │ Alias    │ Balance In Mutez │ Destination                    │
+   ├─────────────┼──────────────────────────────────────┼──────────┼──────────────────┼────────────────────────────────┤
+   │ pokeGame.tz │ KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK │ pokeGame │ 0                │ https://ghostnet.ecadinfra.com │
+   └─────────────┴──────────────────────────────────────┴──────────┴──────────────────┴────────────────────────────────┘
+   ```
 
-Let's tell the proxy that there is a first contract deployed with some interface.
-Edit the parameter file `proxy.parameterList.jsligo` (:warning: Change with your smart contract address on each command line on `addr` fields below :warning:)
+1. Tell the proxy that there is a first contract deployed with some interface.
+   Edit the parameter file `proxy.parameterList.jsligo` (:warning: Change with the smart contract address on each command line on `addr` fields below :warning:).
 
-```ligolang
-#import "proxy.jsligo" "Contract"
+   ```ligolang
+   #import "proxy.jsligo" "Contract"
 
-const initProxyWithV1: parameter_of Contract =
-    Upgrade(
-        [
-            list(
-                [
-                    {
-                        name: "Poke",
-                        isRemoved: false,
-                        entrypoint: Some(
-                            {
-                                method: "Poke",
-                                addr: "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK" as
-                                    address
-                            }
-                        )
-                    },
-                    {
-                        name: "PokeAndGetFeedback",
-                        isRemoved: false,
-                        entrypoint: Some(
-                            {
-                                method: "PokeAndGetFeedback",
-                                addr: "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK" as
-                                    address
-                            }
-                        )
-                    },
-                    {
-                        name: "Init",
-                        isRemoved: false,
-                        entrypoint: Some(
-                            {
-                                method: "Init",
-                                addr: "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK" as
-                                    address
-                            }
-                        )
-                    },
-                    {
-                        name: "changeVersion",
-                        isRemoved: false,
-                        entrypoint: Some(
-                            {
-                                method: "changeVersion",
-                                addr: "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK" as
-                                    address
-                            }
-                        )
-                    },
-                    {
-                        name: "feedback",
-                        isRemoved: false,
-                        entrypoint: Some(
-                            {
-                                method: "feedback",
-                                addr: "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK" as
-                                    address
-                            }
-                        )
-                    }
-                ]
-            ) as list<Contract.entrypointOperation>,
-            None() as option<Contract.changeVersion>
-        ]
-    );
-```
+   const initProxyWithV1: parameter_of Contract =
+       Upgrade(
+           [
+               list(
+                   [
+                       {
+                           name: "Poke",
+                           isRemoved: false,
+                           entrypoint: Some(
+                               {
+                                   method: "Poke",
+                                   addr: "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK" as
+                                       address
+                               }
+                           )
+                       },
+                       {
+                           name: "PokeAndGetFeedback",
+                           isRemoved: false,
+                           entrypoint: Some(
+                               {
+                                   method: "PokeAndGetFeedback",
+                                   addr: "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK" as
+                                       address
+                               }
+                           )
+                       },
+                       {
+                           name: "Init",
+                           isRemoved: false,
+                           entrypoint: Some(
+                               {
+                                   method: "Init",
+                                   addr: "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK" as
+                                       address
+                               }
+                           )
+                       },
+                       {
+                           name: "changeVersion",
+                           isRemoved: false,
+                           entrypoint: Some(
+                               {
+                                   method: "changeVersion",
+                                   addr: "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK" as
+                                       address
+                               }
+                           )
+                       },
+                       {
+                           name: "feedback",
+                           isRemoved: false,
+                           entrypoint: Some(
+                               {
+                                   method: "feedback",
+                                   addr: "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK" as
+                                       address
+                               }
+                           )
+                       }
+                   ]
+               ) as list<Contract.entrypointOperation>,
+               None() as option<Contract.changeVersion>
+           ]
+       );
+   ```
 
-Compile & Call it
+1. Compile & Call it.
 
-```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:1.0.0 taq compile proxy.jsligo
-taq call proxy --param proxy.parameter.initProxyWithV1.tz -e testing
-```
+   ```bash
+   TAQ_LIGO_IMAGE=ligolang/ligo:1.1.0 taq compile proxy.jsligo
+   taq call proxy --param proxy.parameter.initProxyWithV1.tz -e testing
+   ```
 
-output :
+   Output:
 
-```logs
-┌────────────────┬──────────────────────────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────────────┬────────────┬────────────────┬────────────────────────────────┐
-│ Contract Alias │ Contract Address                     │ Parameter                                                                                             │ Entrypoint │ Mutez Transfer │ Destination                    │
-├────────────────┼──────────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────┼────────────────┼────────────────────────────────┤
-│ proxy          │ KT1BPoz3Yi8LPimxCiDvpmutbCNY8x3ghKyQ │ (Left (Pair { Pair "Poke" False (Some (Pair "Poke" "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK")) ;         │ default    │ 0              │ https://ghostnet.ecadinfra.com │
-│                │                                      │               Pair "PokeAndGetFeedback"                                                               │            │                │                                │
-│                │                                      │                    False                                                                              │            │                │                                │
-│                │                                      │                    (Some (Pair "PokeAndGetFeedback" "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK")) ;        │            │                │                                │
-│                │                                      │               Pair "Init" False (Some (Pair "Init" "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK")) ;         │            │                │                                │
-│                │                                      │               Pair "changeVersion"                                                                    │            │                │                                │
-│                │                                      │                    False                                                                              │            │                │                                │
-│                │                                      │                    (Some (Pair "changeVersion" "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK")) ;             │            │                │                                │
-│                │                                      │               Pair "feedback" False (Some (Pair "feedback" "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK")) } │            │                │                                │
-│                │                                      │             None))                                                                                    │            │                │                                │
-│                │                                      │                                                                                                       │            │                │                                │
-└────────────────┴──────────────────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────┴────────────┴────────────────┴────────────────────────────────┘
-```
+   ```logs
+   ┌────────────────┬──────────────────────────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────────────┬────────────┬────────────────┬────────────────────────────────┐
+   │ Contract Alias │ Contract Address                     │ Parameter                                                                                             │ Entrypoint │ Mutez Transfer │ Destination                    │
+   ├────────────────┼──────────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────┼────────────────┼────────────────────────────────┤
+   │ proxy          │ KT1BPoz3Yi8LPimxCiDvpmutbCNY8x3ghKyQ │ (Left (Pair { Pair "Poke" False (Some (Pair "Poke" "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK")) ;         │ default    │ 0              │ https://ghostnet.ecadinfra.com │
+   │                │                                      │               Pair "PokeAndGetFeedback"                                                               │            │                │                                │
+   │                │                                      │                    False                                                                              │            │                │                                │
+   │                │                                      │                    (Some (Pair "PokeAndGetFeedback" "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK")) ;        │            │                │                                │
+   │                │                                      │               Pair "Init" False (Some (Pair "Init" "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK")) ;         │            │                │                                │
+   │                │                                      │               Pair "changeVersion"                                                                    │            │                │                                │
+   │                │                                      │                    False                                                                              │            │                │                                │
+   │                │                                      │                    (Some (Pair "changeVersion" "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK")) ;             │            │                │                                │
+   │                │                                      │               Pair "feedback" False (Some (Pair "feedback" "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK")) } │            │                │                                │
+   │                │                                      │             None))                                                                                    │            │                │                                │
+   │                │                                      │                                                                                                       │            │                │                                │
+   └────────────────┴──────────────────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────┴────────────┴────────────────┴────────────────────────────────┘
+   ```
 
-#### Lets' go to the frontend
+#### Update the frontend
 
-Go on frontend side, recompile all and generate typescript classes
+1. Go on frontend side, recompile all and generate typescript classes.
 
-```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:1.0.0 taq compile pokeGame.jsligo
-TAQ_LIGO_IMAGE=ligolang/ligo:1.0.0 taq compile proxy.jsligo
-taq generate types ./app/src
-```
+   ```bash
+   TAQ_LIGO_IMAGE=ligolang/ligo:1.1.0 taq compile pokeGame.jsligo
+   TAQ_LIGO_IMAGE=ligolang/ligo:1.1.0 taq compile proxy.jsligo
+   taq generate types ./app/src
+   ```
 
-Change the script to extract the proxy address instead of the contract one, edit `./app/package.json` and replace the line of script by
+1. Change the script to extract the proxy address instead of the contract one, edit `./app/package.json` and replace the line of script by:
 
-```json
-    "dev": "jq -r -f filter.jq ../.taq/testing-state.json > .env && vite",
-```
+   ```json
+       "dev": "jq -r -f filter.jq ../.taq/testing-state.json > .env && vite",
+   ```
 
-where you created a new file `filter.jq` with content
+1. Where you created a new file `filter.jq` with below content.
 
-```bash
-echo '"VITE_CONTRACT_ADDRESS=" + last(.tasks[] | select(.task == "deploy" and .output[0].contract == "proxy.tz").output[0].address)' > ./app/filter.jq
-```
+   ```bash
+   echo '"VITE_CONTRACT_ADDRESS=" + last(.tasks[] | select(.task == "deploy" and .output[0].contract == "proxy.tz").output[0].address)' > ./app/filter.jq
+   ```
 
-Edit `./app/src/App.tsx` and change the contract address, display, etc ...
+1. Edit `./app/src/App.tsx` and change the contract address, display, etc ...
 
-```typescript
-import { NetworkType } from "@airgap/beacon-types";
-import { BeaconWallet } from "@taquito/beacon-wallet";
-import { PackDataResponse } from "@taquito/rpc";
-import { MichelCodecPacker, TezosToolkit } from "@taquito/taquito";
-import * as api from "@tzkt/sdk-api";
-import { useEffect, useState } from "react";
-import "./App.css";
-import ConnectButton from "./ConnectWallet";
-import DisconnectButton from "./DisconnectWallet";
-import {
-  Storage as ContractStorage,
-  PokeGameWalletType,
-} from "./pokeGame.types";
-import { Storage as ProxyStorage, ProxyWalletType } from "./proxy.types";
-import { address, bytes } from "./type-aliases";
+   ```typescript
+   import { NetworkType } from "@airgap/beacon-types";
+   import { BeaconWallet } from "@taquito/beacon-wallet";
+   import { PackDataResponse } from "@taquito/rpc";
+   import { MichelCodecPacker, TezosToolkit } from "@taquito/taquito";
+   import * as api from "@tzkt/sdk-api";
+   import { useEffect, useState } from "react";
+   import "./App.css";
+   import ConnectButton from "./ConnectWallet";
+   import DisconnectButton from "./DisconnectWallet";
+   import {
+     Storage as ContractStorage,
+     PokeGameWalletType,
+   } from "./pokeGame.types";
+   import { Storage as ProxyStorage, ProxyWalletType } from "./proxy.types";
+   import { address, bytes } from "./type-aliases";
 
-function App() {
-  api.defaults.baseUrl = "https://api.ghostnet.tzkt.io";
+   function App() {
+     api.defaults.baseUrl = "https://api.ghostnet.tzkt.io";
 
-  const Tezos = new TezosToolkit("https://ghostnet.tezos.marigold.dev");
-  const wallet = new BeaconWallet({
-    name: "Training",
-    preferredNetwork: NetworkType.GHOSTNET,
-  });
-  Tezos.setWalletProvider(wallet);
+     const Tezos = new TezosToolkit("https://ghostnet.tezos.marigold.dev");
+     const wallet = new BeaconWallet({
+       name: "Training",
+       preferredNetwork: NetworkType.GHOSTNET,
+     });
+     Tezos.setWalletProvider(wallet);
 
-  const [contracts, setContracts] = useState<Array<api.Contract>>([]);
-  const [contractStorages, setContractStorages] = useState<
-    Map<string, ProxyStorage & ContractStorage>
-  >(new Map());
+     const [contracts, setContracts] = useState<Array<api.Contract>>([]);
+     const [contractStorages, setContractStorages] = useState<
+       Map<string, ProxyStorage & ContractStorage>
+     >(new Map());
 
-  const fetchContracts = () => {
-    (async () => {
-      const tzktcontracts: Array<api.Contract> = await api.contractsGetSimilar(
-        import.meta.env.VITE_CONTRACT_ADDRESS,
-        {
-          includeStorage: true,
-          sort: { desc: "id" },
-        }
-      );
-      setContracts(tzktcontracts);
-      const taquitoContracts: Array<ProxyWalletType> = await Promise.all(
-        tzktcontracts.map(
-          async (tzktcontract) =>
-            (await Tezos.wallet.at(tzktcontract.address!)) as ProxyWalletType
-        )
-      );
-      const map = new Map<string, ProxyStorage & ContractStorage>();
-      for (const c of taquitoContracts) {
-        const s: ProxyStorage = await c.storage();
-        try {
-          let firstEp: { addr: address; method: string } | undefined =
-            await s.entrypoints.get("Poke");
+     const fetchContracts = () => {
+       (async () => {
+         const tzktcontracts: Array<api.Contract> =
+           await api.contractsGetSimilar(
+             import.meta.env.VITE_CONTRACT_ADDRESS,
+             {
+               includeStorage: true,
+               sort: { desc: "id" },
+             }
+           );
+         setContracts(tzktcontracts);
+         const taquitoContracts: Array<ProxyWalletType> = await Promise.all(
+           tzktcontracts.map(
+             async (tzktcontract) =>
+               (await Tezos.wallet.at(tzktcontract.address!)) as ProxyWalletType
+           )
+         );
+         const map = new Map<string, ProxyStorage & ContractStorage>();
+         for (const c of taquitoContracts) {
+           const s: ProxyStorage = await c.storage();
+           try {
+             let firstEp: { addr: address; method: string } | undefined =
+               await s.entrypoints.get("Poke");
 
-          if (firstEp) {
-            let underlyingContract: PokeGameWalletType = await Tezos.wallet.at(
-              "" + firstEp!.addr
-            );
-            map.set(c.address, {
-              ...s,
-              ...(await underlyingContract.storage()),
-            });
-          } else {
-            console.log(
-              "proxy is not well configured ... for contract " + c.address
-            );
-            continue;
-          }
-        } catch (error) {
-          console.log(error);
-          console.log(
-            "final contract is not well configured ... for contract " +
-              c.address
-          );
-        }
-      }
-      console.log("map", map);
-      setContractStorages(map);
-    })();
-  };
+             if (firstEp) {
+               let underlyingContract: PokeGameWalletType =
+                 await Tezos.wallet.at("" + firstEp!.addr);
+               map.set(c.address, {
+                 ...s,
+                 ...(await underlyingContract.storage()),
+               });
+             } else {
+               console.log(
+                 "proxy is not well configured ... for contract " + c.address
+               );
+               continue;
+             }
+           } catch (error) {
+             console.log(error);
+             console.log(
+               "final contract is not well configured ... for contract " +
+                 c.address
+             );
+           }
+         }
+         console.log("map", map);
+         setContractStorages(map);
+       })();
+     };
 
-  useEffect(() => {
-    (async () => {
-      const activeAccount = await wallet.client.getActiveAccount();
-      if (activeAccount) {
-        setUserAddress(activeAccount.address);
-        const balance = await Tezos.tz.getBalance(activeAccount.address);
-        setUserBalance(balance.toNumber());
-      }
-    })();
-  }, []);
+     useEffect(() => {
+       (async () => {
+         const activeAccount = await wallet.client.getActiveAccount();
+         if (activeAccount) {
+           setUserAddress(activeAccount.address);
+           const balance = await Tezos.tz.getBalance(activeAccount.address);
+           setUserBalance(balance.toNumber());
+         }
+       })();
+     }, []);
 
-  const [userAddress, setUserAddress] = useState<string>("");
-  const [userBalance, setUserBalance] = useState<number>(0);
-  const [contractToPoke, setContractToPoke] = useState<string>("");
-  //poke
-  const poke = async (
-    e: React.MouseEvent<HTMLButtonElement>,
-    contract: api.Contract
-  ) => {
-    e.preventDefault();
-    let c: ProxyWalletType = await Tezos.wallet.at("" + contract.address);
-    try {
-      console.log("contractToPoke", contractToPoke);
+     const [userAddress, setUserAddress] = useState<string>("");
+     const [userBalance, setUserBalance] = useState<number>(0);
+     const [contractToPoke, setContractToPoke] = useState<string>("");
+     //poke
+     const poke = async (
+       e: React.MouseEvent<HTMLButtonElement>,
+       contract: api.Contract
+     ) => {
+       e.preventDefault();
+       let c: ProxyWalletType = await Tezos.wallet.at("" + contract.address);
+       try {
+         console.log("contractToPoke", contractToPoke);
 
-      const p = new MichelCodecPacker();
-      let contractToPokeBytes: PackDataResponse = await p.packData({
-        data: { string: contractToPoke },
-        type: { prim: "address" },
-      });
-      console.log("packed", contractToPokeBytes.packed);
+         const p = new MichelCodecPacker();
+         let contractToPokeBytes: PackDataResponse = await p.packData({
+           data: { string: contractToPoke },
+           type: { prim: "address" },
+         });
+         console.log("packed", contractToPokeBytes.packed);
 
-      const op = await c.methods
-        .callContract("PokeAndGetFeedback", contractToPokeBytes.packed as bytes)
-        .send();
-      await op.confirmation();
-      alert("Tx done");
-    } catch (error: any) {
-      console.log(error);
-      console.table(`Error: ${JSON.stringify(error, null, 2)}`);
-    }
-  };
+         const op = await c.methods
+           .callContract(
+             "PokeAndGetFeedback",
+             contractToPokeBytes.packed as bytes
+           )
+           .send();
+         await op.confirmation();
+         alert("Tx done");
+       } catch (error: any) {
+         console.log(error);
+         console.table(`Error: ${JSON.stringify(error, null, 2)}`);
+       }
+     };
 
-  //mint
-  const mint = async (
-    e: React.MouseEvent<HTMLButtonElement>,
-    contract: api.Contract
-  ) => {
-    e.preventDefault();
-    let c: ProxyWalletType = await Tezos.wallet.at("" + contract.address);
-    try {
-      console.log("contractToPoke", contractToPoke);
-      const p = new MichelCodecPacker();
-      let initBytes: PackDataResponse = await p.packData({
-        data: { prim: "Pair", args: [{ string: userAddress }, { int: "1" }] },
-        type: { prim: "Pair", args: [{ prim: "address" }, { prim: "nat" }] },
-      });
-      const op = await c.methods
-        .callContract("Init", initBytes.packed as bytes)
-        .send();
-      await op.confirmation();
-      alert("Tx done");
-    } catch (error: any) {
-      console.log(error);
-      console.table(`Error: ${JSON.stringify(error, null, 2)}`);
-    }
-  };
+     //mint
+     const mint = async (
+       e: React.MouseEvent<HTMLButtonElement>,
+       contract: api.Contract
+     ) => {
+       e.preventDefault();
+       let c: ProxyWalletType = await Tezos.wallet.at("" + contract.address);
+       try {
+         console.log("contractToPoke", contractToPoke);
+         const p = new MichelCodecPacker();
+         let initBytes: PackDataResponse = await p.packData({
+           data: {
+             prim: "Pair",
+             args: [{ string: userAddress }, { int: "1" }],
+           },
+           type: { prim: "Pair", args: [{ prim: "address" }, { prim: "nat" }] },
+         });
+         const op = await c.methods
+           .callContract("Init", initBytes.packed as bytes)
+           .send();
+         await op.confirmation();
+         alert("Tx done");
+       } catch (error: any) {
+         console.log(error);
+         console.table(`Error: ${JSON.stringify(error, null, 2)}`);
+       }
+     };
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        <ConnectButton
-          Tezos={Tezos}
-          setUserAddress={setUserAddress}
-          setUserBalance={setUserBalance}
-          wallet={wallet}
-        />
+     return (
+       <div className="App">
+         <header className="App-header">
+           <ConnectButton
+             Tezos={Tezos}
+             setUserAddress={setUserAddress}
+             setUserBalance={setUserBalance}
+             wallet={wallet}
+           />
 
-        <DisconnectButton
-          wallet={wallet}
-          setUserAddress={setUserAddress}
-          setUserBalance={setUserBalance}
-        />
+           <DisconnectButton
+             wallet={wallet}
+             setUserAddress={setUserAddress}
+             setUserBalance={setUserBalance}
+           />
 
-        <div>
-          I am {userAddress} with {userBalance} mutez
-        </div>
+           <div>
+             I am {userAddress} with {userBalance} mutez
+           </div>
 
-        <br />
-        <div>
-          <button onClick={fetchContracts}>Fetch contracts</button>
-          <table>
-            <thead>
-              <tr>
-                <th>address</th>
-                <th>trace "contract - feedback - user"</th>
-                <th>action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {contracts.map((contract) => (
-                <tr>
-                  <td style={{ borderStyle: "dotted" }}>{contract.address}</td>
-                  <td style={{ borderStyle: "dotted" }}>
-                    {contractStorages.get(contract.address!) !== undefined &&
-                    contractStorages.get(contract.address!)!.pokeTraces
-                      ? Array.from(
-                          contractStorages
-                            .get(contract.address!)!
-                            .pokeTraces.entries()
-                        ).map(
-                          (e) =>
-                            e[1].receiver +
-                            " " +
-                            e[1].feedback +
-                            " " +
-                            e[0] +
-                            ","
-                        )
-                      : ""}
-                  </td>
-                  <td style={{ borderStyle: "dotted" }}>
-                    <input
-                      type="text"
-                      onChange={(e) => {
-                        console.log("e", e.currentTarget.value);
-                        setContractToPoke(e.currentTarget.value);
-                      }}
-                      placeholder="enter contract address here"
-                    />
-                    <button onClick={(e) => poke(e, contract)}>Poke</button>
-                    <button onClick={(e) => mint(e, contract)}>
-                      Mint 1 ticket
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </header>
-    </div>
-  );
-}
+           <br />
+           <div>
+             <button onClick={fetchContracts}>Fetch contracts</button>
+             <table>
+               <thead>
+                 <tr>
+                   <th>address</th>
+                   <th>trace "contract - feedback - user"</th>
+                   <th>action</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 {contracts.map((contract) => (
+                   <tr>
+                     <td style={{ borderStyle: "dotted" }}>
+                       {contract.address}
+                     </td>
+                     <td style={{ borderStyle: "dotted" }}>
+                       {contractStorages.get(contract.address!) !== undefined &&
+                       contractStorages.get(contract.address!)!.pokeTraces
+                         ? Array.from(
+                             contractStorages
+                               .get(contract.address!)!
+                               .pokeTraces.entries()
+                           ).map(
+                             (e) =>
+                               e[1].receiver +
+                               " " +
+                               e[1].feedback +
+                               " " +
+                               e[0] +
+                               ","
+                           )
+                         : ""}
+                     </td>
+                     <td style={{ borderStyle: "dotted" }}>
+                       <input
+                         type="text"
+                         onChange={(e) => {
+                           console.log("e", e.currentTarget.value);
+                           setContractToPoke(e.currentTarget.value);
+                         }}
+                         placeholder="enter contract address here"
+                       />
+                       <button onClick={(e) => poke(e, contract)}>Poke</button>
+                       <button onClick={(e) => mint(e, contract)}>
+                         Mint 1 ticket
+                       </button>
+                     </td>
+                   </tr>
+                 ))}
+               </tbody>
+             </table>
+           </div>
+         </header>
+       </div>
+     );
+   }
 
-export default App;
-```
+   export default App;
+   ```
 
-- contract address now is pointing to your **proxy** address
-- we are merging proxy and contract storage with `ProxyStorage&ContractStorage` type definition. contract fecth is appending the storage of the underlying contract to the proxy storage, so we can display it on the table like before :)
-- we have altered the call to exposed entrypoint. Because all is generic now on the proxy, we always do `await c.methods.callContract("my_entrypoint_name",my_packed_payload_bytes).send()`
+   - Contract address now is pointing to the new **proxy** address.
+   - Merge the proxy and contract storage into `ProxyStorage&ContractStorage` type definition. Fetching the contracts is appending the storage of the underlying contract to the proxy storage.
+   - The call to exposed entrypoint is altered. As all is generic, now on the proxy side there are only `await c.methods.callContract("my_entrypoint_name",my_packed_payload_bytes).send()` calls.
 
-Lets' run the frontend locally
+1. Run the frontend locally.
 
 ```bash
 cd app
 yarn dev
 ```
 
-You can do all the same actions as before through the proxy.
+6. Do all the same actions as before through the proxy.
 
-1. Login
-1. Refresh the contract list
-1. Mint 1 ticket
-1. Wait for confirmation popup
-1. Poke
-1. Wait for confirmation popup
-1. Refresh the contract list
+1. Login.
+1. Refresh the contract list.
+1. Mint 1 ticket.
+1. Wait for confirmation popup.
+1. Poke.
+1. Wait for confirmation popup.
+1. Refresh the contract list.
 
-:ok_hand:
+Deploy a new contract V2 and test it again.
 
-Let's deploy a new contract V2 and test it again.
+> Note: Remember that the `storage.feedback` field cannot change on any deployed smart contract because there is no exposed method to update it.
+> Let's change this value for the new contract instance, and call it `hello`.
 
-> Note : Remember that we cannot change the `storage.feedback` field on any deployed smartcontract bacause we never exposed a method to update it.
-> Let's change this value for the new contract instance, and call it `hello`
-
-Edit `pokeGame.storageList.jsligo` and add a new variable on it. Don't forget again to change `proxy` and `contractPrevious` by our own values !!!
+7. Edit `pokeGame.storageList.jsligo` and add a new variable on it. Don't forget again to change `proxy` and `contractPrevious` by our own values !
 
 ```ligolang
 const storageV2 = {
@@ -1393,7 +1399,7 @@ const storageV2 = {
 ```
 
 ```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:1.0.0 taq compile pokeGame.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:1.1.0 taq compile pokeGame.jsligo
 taq deploy pokeGame.tz -e testing --storage pokeGame.storage.storageV2.tz
 ```
 
@@ -1405,8 +1411,8 @@ taq deploy pokeGame.tz -e testing --storage pokeGame.storage.storageV2.tz
 └─────────────┴──────────────────────────────────────┴──────────┴──────────────────┴────────────────────────────────┘
 ```
 
-Tell our proxy than we have new entrypoints to the V2 and remove the ones from V1.
-Add a new parameter variable on `proxy.parameterList.jsligo`. Don't forget to change the `addr` values with the new contract address just above !!!
+8. Tell the proxy that there are new V2 entrypoints and remove the V1 ones.
+   Add a new parameter variable on `proxy.parameterList.jsligo`. Don't forget to change the `addr` values with the new contract address just above.
 
 ```ligolang
 const initProxyWithV2: parameter_of Contract =
@@ -1476,14 +1482,14 @@ const initProxyWithV2: parameter_of Contract =
     );
 ```
 
-Call the proxy to do the changes
+9. Call the proxy to do the changes.
 
 ```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:1.0.0 taq compile proxy.jsligo
+TAQ_LIGO_IMAGE=ligolang/ligo:1.1.0 taq compile proxy.jsligo
 taq call proxy --param proxy.parameter.initProxyWithV2.tz -e testing
 ```
 
-Check the logs
+10. Check the logs.
 
 ```logs
 ┌────────────────┬──────────────────────────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────────────┬────────────┬────────────────┬────────────────────────────────┐
@@ -1503,22 +1509,20 @@ Check the logs
 └────────────────┴──────────────────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────┴────────────┴────────────────┴────────────────────────────────┘
 ```
 
-Back to the web app, test the flow again :
+11. Back to the web app, test the flow again:
 
-1. Refresh the contract list
-1. Mint 1 ticket
-1. Wait for confirmation popup
-1. Poke
-1. Wait for confirmation popup
-1. Refresh the contract list
+1. Refresh the contract list.
+1. Mint 1 ticket.
+1. Wait for confirmation popup.
+1. Poke.
+1. Wait for confirmation popup.
+1. Refresh the contract list.
 
-Now, your proxy is calling the contract V2 and should return `hello` on the traces and no more `kiss`
+Now, the proxy is calling the contract V2 and should return `hello` on the traces and no more `kiss`.
 
 #### Last part is to set the old smart contract as obsolete
 
-> Note : we could have do it in one row in a single transaction as all operations are done in sequence on the operation array
-
-Add a new parameter on `proxy.parameterList.jsligo` to force change of version on old contract (:warning: replace below with your own addresses for V1 ad V2)
+1. Add a new parameter on `proxy.parameterList.jsligo` to force change of version on old contract (:warning: replace below with your own addresses for V1 ad V2).
 
 ```ligolang
 const changeVersionV1ToV2: parameter_of Contract =
@@ -1535,35 +1539,35 @@ const changeVersionV1ToV2: parameter_of Contract =
     );
 ```
 
-```bash
-TAQ_LIGO_IMAGE=ligolang/ligo:1.0.0 taq compile proxy.jsligo
-taq call proxy --param proxy.parameter.changeVersionV1ToV2.tz -e testing
-```
+1. Compile.
 
-Check logs
+   ```bash
+   TAQ_LIGO_IMAGE=ligolang/ligo:1.1.0 taq compile proxy.jsligo
+   taq call proxy --param proxy.parameter.changeVersionV1ToV2.tz -e testing
+   ```
 
-```logs
-┌────────────────┬──────────────────────────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────────────────┬────────────┬────────────────┬────────────────────────────────┐
-│ Contract Alias │ Contract Address                     │ Parameter                                                                                                 │ Entrypoint │ Mutez Transfer │ Destination                    │
-├────────────────┼──────────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────┼────────────────┼────────────────────────────────┤
-│ proxy          │ KT1BPoz3Yi8LPimxCiDvpmutbCNY8x3ghKyQ │ (Left (Pair {}                                                                                            │ default    │ 0              │ https://ghostnet.ecadinfra.com │
-│                │                                      │             (Some (Pair "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK" "KT1QXXwzRYwrvtDAJpT1jnxym86YbhzMHnKF")))) │            │                │                                │
-│                │                                      │                                                                                                           │            │                │                                │
-└────────────────┴──────────────────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────────┴────────────┴────────────────┴────────────────────────────────┘
-```
+1. Check logs.
 
-Check on an indexer that the V1 `storage.tzip18.contractNext` is pointing to the next version address V2 : [old V1 contract storage](https://ghostnet.tzkt.io/KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK/storage/)
+   ```logs
+   ┌────────────────┬──────────────────────────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────────────────┬────────────┬────────────────┬────────────────────────────────┐
+   │ Contract Alias │ Contract Address                     │ Parameter                                                                                                 │ Entrypoint │ Mutez Transfer │ Destination                    │
+   ├────────────────┼──────────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────┼────────────────┼────────────────────────────────┤
+   │ proxy          │ KT1BPoz3Yi8LPimxCiDvpmutbCNY8x3ghKyQ │ (Left (Pair {}                                                                                            │ default    │ 0              │ https://ghostnet.ecadinfra.com │
+   │                │                                      │             (Some (Pair "KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK" "KT1QXXwzRYwrvtDAJpT1jnxym86YbhzMHnKF")))) │            │                │                                │
+   │                │                                      │                                                                                                           │            │                │                                │
+   └────────────────┴──────────────────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────────┴────────────┴────────────────┴────────────────────────────────┘
+   ```
 
-:tada: This ends the proxy pattern implementation. Your old contract is no more "runnable" and your proxy is pointing to the last version
+1. Check on an indexer that the V1 `storage.tzip18.contractNext` is pointing to the next version address V2: [old V1 contract storage](https://ghostnet.tzkt.io/KT18ceGtUsNtQTk9smxQcaxAswRVkHDDKDgK/storage/).
 
-## Alternative : Composability
+   This ends the proxy pattern implementation. The old contract is no more "runnable" and the proxy is pointing to the last version.
 
-Managing a monolithic smartcontract like a microservice can reduce the problem, on the other side it increases complexity and application lifecycle on OPS side
+## Alternative: Composability
 
-That's your tradeoff :shrug: :trollface:
+Managing a monolithic smart contract like a microservice can reduce the problem, on the other side it increases complexity and application lifecycle on OPS side.
 
-# :palm_tree: Conclusion :sun_with_face:
+That's your tradeoff.
 
-Now, you are able to upgrade deployed contracts
+## Summary
 
-:new: Some ongoing works around TZIP-18 are coming to hide this complexity from the developers and to provide/automatize tools around it
+Now, you are able to upgrade deployed contracts.
