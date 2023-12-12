@@ -1,0 +1,12 @@
+{
+   
+        pokeTraces: Map.empty as map<address, { receiver: address, feedback: string }>,
+        feedback: "kiss",
+        ticketOwnership: Map.empty as
+            map<
+                address,
+                ticket<string>
+            > //ticket of claims
+
+   
+}
